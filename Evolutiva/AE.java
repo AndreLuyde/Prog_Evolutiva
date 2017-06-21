@@ -131,6 +131,37 @@ public class AE {
 		return solution;
 	}
 
+	//seleção
+	public ArrayList<RouteSolution> torneio(ArrayList<RouteSolution> populacao, ArrayList<RouteSolution> novasSulucoes, int tamanhoPopulacao) {
+		RouteSolution aleatorio1 = null;
+		RouteSolution aleatorio2 = null;
+		for (RouteSolution routeSolution : novasSulucoes) {
+			populacao.add(routeSolution);
+		}
+		ArrayList<RouteSolution> populacaoFinal = new ArrayList<RouteSolution>();
+		for (int i = 0; i < tamanhoPopulacao; i++) {
+			int n = (int) (0 + Math.random() * populacao.size());
+			aleatorio1 = populacao.get(n);
+			n = (int) (0 + Math.random() * populacao.size());
+			aleatorio2 = populacao.get(n);
+			if (fitness(aleatorio1) < fitness(aleatorio2)) {
+				populacaoFinal.add(aleatorio1);
+			} else {
+				populacaoFinal.add(aleatorio2);
+			}
+		}
+		return populacaoFinal;
+	}
+
+	private int fitness(RouteSolution solucao) {
+		int distanciaTotal = 0;
+		for (int i = 0; i < solucao.getSolution().size(); i++) {
+			distanciaTotal += solucao.getSolution().get(i).getDistancias().get(i);
+		}
+		return distanciaTotal;
+	}
+
+	
 	// -----Get and Set
 	public RouteProblem getProblema() {
 		return problema;

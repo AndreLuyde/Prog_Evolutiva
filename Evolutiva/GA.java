@@ -39,8 +39,10 @@ public class GA {
 		}
 	}
 
-	public void evolutionaryCicle(int actualTime) {
-		
+	public void evolutionaryCicle(ArrayList<RouteSolution> populacao) {
+		for (RouteSolution routeSolution : populacao) {
+			routeSolution. fitness(routeSolution);
+		}
 		bestSolution.crossingRoute2Cut(bestSolution, bestSolution);
 		for (Pontos client : bestSolution.getSolution()) {
 			bestSolution.setTimeSolution(client.getTime() - actualTime);
@@ -119,6 +121,7 @@ public class GA {
 		for (int i = 0; i < solucao.getSolution().size(); i++) {
 			distanciaTotal += solucao.getSolution().get(i).getDistancias().get(i);
 		}
+		solucao.
 		return distanciaTotal;
 	}
 
