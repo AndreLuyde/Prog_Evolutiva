@@ -12,9 +12,9 @@ public class AE {
 	private Double probabilidadeCruzamento;
 	private Double probabilidadeMutacao;
 	private int geracaoAtual;
-	// este bool definir√° se a sele√ß√£o para reprodu√ß√£o envolver√° os pais
+	// este bool definir· se a seleÁ„o para reproduÁ„o envolver· os pais
 	private Boolean competicaoPaisFilhos;
-	// este double definir√° a propor√ß√£o entre pais e filhos
+	// este double definir· a proporÁ„o entre pais e filhos
 	private Boolean proporcaoPaisFilhos;
 	Random r = new Random();
 
