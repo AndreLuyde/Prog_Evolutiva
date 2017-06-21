@@ -27,7 +27,7 @@ public class GA {
 
 	public void run() {
 		while (stopCriteria(this.bestSolution)) {
-			evolutionaryCicle(12);
+//			evolutionaryCicle(12);
 		}
 	}
 
@@ -40,12 +40,14 @@ public class GA {
 	}
 
 	public void evolutionaryCicle(ArrayList<RouteSolution> populacao) {
+		//coloca em cada solução o fitness dela
 		for (RouteSolution routeSolution : populacao) {
-			routeSolution. fitness(routeSolution);
+			fitness(routeSolution);
 		}
+		
 		bestSolution.crossingRoute2Cut(bestSolution, bestSolution);
 		for (Pontos client : bestSolution.getSolution()) {
-			bestSolution.setTimeSolution(client.getTime() - actualTime);
+			bestSolution.setTimeSolution(client.getTime());
 		}
 	}
 
@@ -121,7 +123,7 @@ public class GA {
 		for (int i = 0; i < solucao.getSolution().size(); i++) {
 			distanciaTotal += solucao.getSolution().get(i).getDistancias().get(i);
 		}
-		solucao.
+		solucao.setTimeSolution(distanciaTotal);
 		return distanciaTotal;
 	}
 
