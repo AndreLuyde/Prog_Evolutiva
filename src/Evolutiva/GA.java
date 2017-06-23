@@ -45,10 +45,10 @@ public class GA {
 			fitness(routeSolution);
 		}
 		
-		bestSolution.crossingRoute2Cut(bestSolution, bestSolution);
-		for (Pontos client : bestSolution.getSolution()) {
-			bestSolution.setTimeSolution(client.getTime());
-		}
+		int indice1 = (int) (0 + Math.random() * populacao.size());
+		int indice2 = (int) (0 + Math.random() * populacao.size());
+		crossingRoute2Cut(populacao.get(indice1), populacao.get(indice2));
+		selecao(populacao, 20);
 	}
 
 	// Cruzamento de rota
@@ -96,8 +96,8 @@ public class GA {
 		return solution;
 	}
 
-	public ArrayList<RouteSolution> torneio(ArrayList<RouteSolution> populacao, ArrayList<RouteSolution> novasSulucoes,
-			int tamanhoPopulacao) {
+	public ArrayList<RouteSolution> selecao(ArrayList<RouteSolution> populacao, int tamanhoPopulacao) {
+		ArrayList<RouteSolution> novasSulucoes = new ArrayList<RouteSolution>();
 		RouteSolution aleatorio1 = null;
 		RouteSolution aleatorio2 = null;
 		for (RouteSolution routeSolution : novasSulucoes) {
@@ -116,6 +116,20 @@ public class GA {
 			}
 		}
 		return populacaoFinal;
+	}
+
+	public RouteSolution torneio(RouteSolution solucao1, RouteSolution solucao2){
+		if(solucao1.getTimeSolution() == 0){
+			fitness(solucao1);
+		}
+		if(solucao2.getTimeSolution() == 0){
+			fitness(solucao2);
+		}
+		if(solucao1.getTimeSolution() > solucao2.getTimeSolution()){
+			return solucao2;
+		}else{
+			return solucao1;
+		}
 	}
 
 	private int fitness(RouteSolution solucao) {

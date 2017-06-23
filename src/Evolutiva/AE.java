@@ -132,7 +132,7 @@ public class AE {
 	}
 
 	//seleção
-	public ArrayList<RouteSolution> torneio(ArrayList<RouteSolution> populacao, ArrayList<RouteSolution> novasSulucoes, int tamanhoPopulacao) {
+	public ArrayList<RouteSolution> selecao(ArrayList<RouteSolution> populacao, ArrayList<RouteSolution> novasSulucoes, int tamanhoPopulacao) {
 		RouteSolution aleatorio1 = null;
 		RouteSolution aleatorio2 = null;
 		for (RouteSolution routeSolution : novasSulucoes) {
@@ -151,6 +151,20 @@ public class AE {
 			}
 		}
 		return populacaoFinal;
+	}
+	
+	public RouteSolution torneio(RouteSolution solucao1, RouteSolution solucao2){
+		if(solucao1.getTimeSolution() == 0){
+			fitness(solucao1);
+		}
+		if(solucao2.getTimeSolution() == 0){
+			fitness(solucao2);
+		}
+		if(solucao1.getTimeSolution() > solucao2.getTimeSolution()){
+			return solucao2;
+		}else{
+			return solucao1;
+		}
 	}
 
 	private int fitness(RouteSolution solucao) {
