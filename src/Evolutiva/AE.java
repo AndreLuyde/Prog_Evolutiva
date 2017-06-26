@@ -8,10 +8,11 @@ public class AE {
 
 	private RouteProblem problema;
 	private ArrayList<RouteSolution> populacao;
-	private RouteSolution solucao;
+	private RouteSolution melhorSolucao;
 	private Double probabilidadeCruzamento;
 	private Double probabilidadeMutacao;
 	private int geracaoAtual;
+	private int tamanhoPopulacao;
 	// este bool definirá se a seleção para reprodução envolverá os pais
 	private Boolean competicaoPaisFilhos;
 	// este double definirá a proporção entre pais e filhos
@@ -19,9 +20,31 @@ public class AE {
 	Random r = new Random();
 
 	public AE(RouteProblem problema, int tamanhoPopulacao) {
+		setProblema(problema);
+		setTamanhoPopulacao(tamanhoPopulacao);
 	}
 
 	public void run() {
+	}
+	
+	public RouteSolution getMelhorSolucao(ArrayList<RouteSolution> populacao){
+		RouteSolution melhorSolucao = null;
+		for (RouteSolution routeSolution : populacao) {
+			fitness(routeSolution);
+			if(melhorSolucao != null){
+				if(routeSolution.getTimeSolution() < melhorSolucao.getTimeSolution()){
+					melhorSolucao = routeSolution;
+				}
+			}else{
+				melhorSolucao = routeSolution;
+			}
+		}
+		setMelhorSolucao(melhorSolucao);
+		return melhorSolucao;
+	}
+	
+	private void cicloEvolucionario(){
+		
 	}
 
 	// Cruzamento de rota
@@ -167,11 +190,13 @@ public class AE {
 		}
 	}
 
+	//avaliação da solução
 	private int fitness(RouteSolution solucao) {
 		int distanciaTotal = 0;
 		for (int i = 0; i < solucao.getSolution().size(); i++) {
 			distanciaTotal += solucao.getSolution().get(i).getDistancias().get(i);
 		}
+		solucao.setTimeSolution(distanciaTotal);
 		return distanciaTotal;
 	}
 
@@ -193,18 +218,19 @@ public class AE {
 		this.populacao = populacao;
 	}
 
-	public RouteSolution getSolucao() {
-		return solucao;
+	public RouteSolution getMelhorSolucao() {
+		return melhorSolucao;
 	}
 
-	public void setSolucao(RouteSolution solucao) {
-		this.solucao = solucao;
+	public void setMelhorSolucao(RouteSolution melhorSolucao) {
+		this.melhorSolucao = melhorSolucao;
 	}
 
 	public Double getProbabilidadeCruzamento() {
 		return probabilidadeCruzamento;
 	}
-
+	
+	//seta probabilidade de cruzamento
 	public void setProbabilidadeCruzamento(Double probabilidadeCruzamento) {
 		this.probabilidadeCruzamento = probabilidadeCruzamento;
 	}
@@ -212,7 +238,8 @@ public class AE {
 	public Double getProbabilidadeMutacao() {
 		return probabilidadeMutacao;
 	}
-
+	
+	//seta a probabilidade de mutação
 	public void setProbabilidadeMutacao(Double probabilidadeMutacao) {
 		this.probabilidadeMutacao = probabilidadeMutacao;
 	}
@@ -239,5 +266,13 @@ public class AE {
 
 	public void setProporcaoPaisFilhos(Boolean proporcaoPaisFilhos) {
 		this.proporcaoPaisFilhos = proporcaoPaisFilhos;
+	}
+
+	public int getTamanhoPopulacao() {
+		return tamanhoPopulacao;
+	}
+
+	public void setTamanhoPopulacao(int tamanhoPopulacao) {
+		this.tamanhoPopulacao = tamanhoPopulacao;
 	}
 }

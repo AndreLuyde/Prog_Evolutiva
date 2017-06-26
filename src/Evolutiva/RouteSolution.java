@@ -147,19 +147,6 @@ public class RouteSolution {
 		return solution;
 	}
 
-	// retorna o vizinho mais proximo
-	public Pontos getNextPointByNeighbor(Pontos client, int time, ArrayList<Pontos> clients) {
-		Pontos clientReturn = new Pontos();
-		int smallTime = 25;
-		for (Pontos cli : client.getNeighborhood()) {
-			if (cli.getTime() > time && cli.getTime() < smallTime) {
-				clientReturn = cli;
-				smallTime = cli.getTime();
-			}
-		}
-		return clientReturn;
-	}
-
 	// retorna o cliente mais proximo pelo tempo de coleta
 	public Pontos getNextPointByTime(int time, ArrayList<Pontos> pontos) {
 		Pontos clientReturn = new Pontos();

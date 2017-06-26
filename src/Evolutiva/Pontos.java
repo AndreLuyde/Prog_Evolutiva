@@ -4,7 +4,8 @@ import java.util.ArrayList;
 public class Pontos {
 	private int time;
 	private int rotulo;
-	ArrayList<Pontos> neighborhood = new ArrayList<Pontos>();
+	private int pontoX;
+	private int pontoY;
 	ArrayList<Integer> distancias = new ArrayList<Integer>();
 	
 	public int getTime() {
@@ -20,16 +21,22 @@ public class Pontos {
 	public void setDistancias(ArrayList<Integer> distancias) {
 		this.distancias = distancias;
 	}
-	public ArrayList<Pontos> getNeighborhood() {
-		return neighborhood;
-	}
-	public void setNeighborhood(ArrayList<Pontos> neighborhood) {
-		this.neighborhood = neighborhood;
-	}
 	public int getRotulo() {
 		return rotulo;
 	}
 	public void setRotulo(int rotulo) {
 		this.rotulo = rotulo;
+	}
+	public int getPontoX() {
+		return pontoX;
+	}
+	public void setPontoX(int pontoX) {
+		this.pontoX = pontoX;
+	}
+	public int getPontoY() {
+		return pontoY;
+	}
+	public void setPontoY(int pontoY) {
+		this.pontoY = pontoY;
 	}
 }

@@ -36,7 +36,7 @@ public class Individuo {
 			individuo.getSolution().mutationRouteByShuffle(individuo.getSolution());
 		}
 	}
-
+	
 	public RouteSolution getSolution() {
 		return solution;
 	}
