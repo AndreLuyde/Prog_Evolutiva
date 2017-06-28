@@ -7,15 +7,12 @@ import java.util.Random;
 public class RouteSolution {
 
 	private ArrayList<Pontos> solution = new ArrayList<Pontos>();
-	private int timeSolution;
+	private int fitness;
 	Random r = new Random();
 
-	public RouteSolution(RouteProblem problem, ArrayList<Pontos> pontos, int actualTime) {
+	public RouteSolution(ArrayList<Pontos> pontos) {
 		Collections.shuffle(pontos);
 		this.setSolution(pontos);
-		for (Pontos ponto : pontos) {
-			this.setTimeSolution(ponto.getTime() - actualTime);
-		}
 	}
 
 	// mostra a solucao
@@ -168,12 +165,12 @@ public class RouteSolution {
 		this.solution = solution;
 	}
 
-	public int getTimeSolution() {
-		return timeSolution;
+	public int getFitness() {
+		return fitness;
 	}
 
-	public void setTimeSolution(int timeSolution) {
-		this.timeSolution = timeSolution;
+	public void setFitness(int fitness) {
+		this.fitness = fitness;
 	}
 
 }

@@ -10,6 +10,7 @@ public class GA {
 	private double mutationProbability;
 	private RouteProblem problem;
 	private int gen = 0;
+	private int geracao = 0;
 	private RouteSolution bestSolution;
 	private ArrayList<RouteSolution> populacao = new ArrayList<RouteSolution>();
 	Random r = new Random();
@@ -17,38 +18,99 @@ public class GA {
 	public GA(RouteProblem problem, int populationSize) {
 		this.setBestSolution(problem.getSolution());
 		this.setProblem(problem);
-		this.setMutationProbability(1 / problem.getSolution().getSolution().size());
+		this.setMutationProbability(1 / problem.getNumClients());
 		this.setCrossProbability(0.9);
+		RouteSolution solucao = null;
+		ArrayList<Pontos> pontos = problem.getPontos();
+		//inicializa a população
 		for (int i = 0; i < populationSize; i++) {
-			Collections.shuffle(problem.getPontos());
-			this.getPopulacao().get(i).setSolution(problem.getPontos());
+			Collections.shuffle(pontos);
+			solucao = new RouteSolution(pontos);
+			this.getPopulacao().add(solucao);
 		}
 	}
 
-	public void run() {
-		while (stopCriteria(this.bestSolution)) {
-//			evolutionaryCicle(12);
-		}
+	public void run(long timeFimExecucao, long tempoInicial) {
+		evolutionaryCicle(getPopulacao(), timeFimExecucao, tempoInicial);
 	}
 
-	public boolean stopCriteria(RouteSolution solution) {
-		if (solution.getTimeSolution() < 10) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	public void evolutionaryCicle(ArrayList<RouteSolution> populacao) {
+	public void evolutionaryCicle(ArrayList<RouteSolution> populacao, long timeFimExecucao, long tempoInicial) {
+		ArrayList<ArrayList<Pontos>> filhos = new ArrayList<ArrayList<Pontos>>();
+		Double timeDouble = 0d;
+		RouteSolution pai1 = null;
+		RouteSolution pai2 = null;
+		RouteSolution filho = null;
+		RouteSolution melhorSolucaoGeracao = null;
+		int indice1 = -1;
+		int indice2 = -1;
+		int indice3 = -1;
+		int indice4 = -1;
 		//coloca em cada solução o fitness dela
-		for (RouteSolution routeSolution : populacao) {
-			fitness(routeSolution);
+		for(int i=0; i< populacao.size(); i++){
+			populacao.get(i).setFitness(fitness(populacao.get(i)));
 		}
+//		for (RouteSolution routeSolution : populacao) {
+//			fitness(routeSolution);
+//		}
 		
-		int indice1 = (int) (0 + Math.random() * populacao.size());
-		int indice2 = (int) (0 + Math.random() * populacao.size());
-		crossingRoute2Cut(populacao.get(indice1), populacao.get(indice2));
-		selecao(populacao, 20);
+		do{
+			//seleção de pontos para fazer seleção para cruzamento
+			indice1 = (int) (0 + Math.random() * populacao.size());
+			indice2 = (int) (0 + Math.random() * populacao.size());
+			indice3 = (int) (0 + Math.random() * populacao.size());
+			indice4 = (int) (0 + Math.random() * populacao.size());
+			
+			//seleção de pais para cruzamento
+			pai1 = torneio(populacao.get(indice1), populacao.get(indice2));
+			pai2 = torneio(populacao.get(indice3), populacao.get(indice4));
+			
+			//verifica probabilidade de cruzamento
+			if(r.nextGaussian() < getCrossProbability()){
+				filhos = crossingRoute2Cut(pai1, pai2);
+				for (ArrayList<Pontos> arrayList : filhos) {
+					filho = new RouteSolution(arrayList);
+					populacao.add(filho);
+				}
+			}
+			
+			//verifica possibilidade de mutação
+			if(r.nextGaussian() < getMutationProbability()){
+				populacao.add(mutationRouteByChange(pai1));
+			}
+			
+			//selecao para proxima geração
+			populacao = selecao(populacao, 100);
+			setGeracao(getGeracao()+1);
+			
+			//mostra melhor solução da geração
+//			setBestSolution(getMelhorSolucao(populacao));
+			melhorSolucaoGeracao = null;
+			melhorSolucaoGeracao = getMelhorSolucao(populacao);
+			if(getBestSolution() == null){
+				setBestSolution(melhorSolucaoGeracao);
+			}else if(melhorSolucaoGeracao.getFitness() < getBestSolution().getFitness()){
+				setBestSolution(melhorSolucaoGeracao);
+			}
+			
+			System.out.println("Solução Da "+getGeracao()+" geração");
+			for (Pontos ponto : melhorSolucaoGeracao.getSolution()) {
+				System.out.print("| "+ponto.getRotulo()+" ");
+			}
+			System.out.println("|");
+			System.out.println("Fitness: "+melhorSolucaoGeracao.getFitness());
+			
+			//atualiza critério de parada
+			long actualTime = System.currentTimeMillis();
+			long time = (actualTime - tempoInicial);
+			timeDouble = Double.parseDouble((String.valueOf(time))) / 1000;
+		}while (timeFimExecucao > timeDouble);
+		
+		System.out.println("Melhor Solução encontrada");
+		for (Pontos ponto : getBestSolution().getSolution()) {
+			System.out.print("| "+ponto.getRotulo()+" ");
+		}
+		System.out.println("|");
+		System.out.println("Fitness: "+getBestSolution().getFitness());
 	}
 
 	// Cruzamento de rota
@@ -119,13 +181,13 @@ public class GA {
 	}
 
 	public RouteSolution torneio(RouteSolution solucao1, RouteSolution solucao2){
-		if(solucao1.getTimeSolution() == 0){
+		if(solucao1.getFitness() == 0){
 			fitness(solucao1);
 		}
-		if(solucao2.getTimeSolution() == 0){
+		if(solucao2.getFitness() == 0){
 			fitness(solucao2);
 		}
-		if(solucao1.getTimeSolution() > solucao2.getTimeSolution()){
+		if(solucao1.getFitness() > solucao2.getFitness()){
 			return solucao2;
 		}else{
 			return solucao1;
@@ -135,12 +197,31 @@ public class GA {
 	private int fitness(RouteSolution solucao) {
 		int distanciaTotal = 0;
 		for (int i = 0; i < solucao.getSolution().size(); i++) {
-			distanciaTotal += solucao.getSolution().get(i).getDistancias().get(i);
+			if(i == solucao.getSolution().size() -1){
+				distanciaTotal += solucao.getSolution().get(i).getDistancias().get(solucao.getSolution().get(0).getRotulo());
+			}else{
+				distanciaTotal += solucao.getSolution().get(i).getDistancias().get(solucao.getSolution().get(i+1).getRotulo());
+			}
 		}
-		solucao.setTimeSolution(distanciaTotal);
+		solucao.setFitness(distanciaTotal);
 		return distanciaTotal;
 	}
 
+	private RouteSolution getMelhorSolucao(ArrayList<RouteSolution> populacao){
+		RouteSolution melhorSolucao = populacao.get(0);
+		for(int i=0; i< populacao.size(); i++){
+			if(populacao.get(i).getFitness() < melhorSolucao.getFitness()){
+				melhorSolucao = populacao.get(i);
+			}
+		}
+//		for (RouteSolution routeSolution : populacao) {
+//			if(routeSolution.getFitness() < melhorSolucao.getFitness()){
+//				melhorSolucao = routeSolution;
+//			}
+//		}
+		return melhorSolucao;
+	}
+	
 	public RouteSolution getBestSolution() {
 		return bestSolution;
 	}
@@ -187,6 +268,14 @@ public class GA {
 
 	public void setPopulacao(ArrayList<RouteSolution> populacao) {
 		this.populacao = populacao;
+	}
+
+	public int getGeracao() {
+		return geracao;
+	}
+
+	public void setGeracao(int geracao) {
+		this.geracao = geracao;
 	}
 
 }

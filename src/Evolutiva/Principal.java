@@ -17,8 +17,8 @@ public class Principal {
 		Pontos p1 = new Pontos();
 //		p1.setDistancias(distancias);	
 		ArrayList<Pontos> pontos = new ArrayList<Pontos>();
-		RouteProblem problema = new RouteProblem(100, pontos);
-		RouteSolution solucao = new RouteSolution(problema, pontos, 0);
+//		RouteProblem problema = new RouteProblem(100, pontos);
+//		RouteSolution solucao = new RouteSolution(problema, pontos, 0);
 
 		// leitura arquivo com rotas
 		int tamanho = 0;
@@ -70,11 +70,16 @@ public class Principal {
 			System.err.printf("Erro na abertura do arquivo: %s.\n", e.getMessage());
 		}
 		
-		long timeFinish = Long.parseLong(seconds);
+		//execução GA
+		long tempoInicial = System.currentTimeMillis();
+		RouteProblem problema = new RouteProblem(pontos.size(), pontos);
+		GA ga = new GA(problema, 100);
+		long tempoFinal = Long.parseLong(seconds);
+		ga.run(tempoFinal, tempoInicial);
+		
 		long timeEnd = System.currentTimeMillis();
 		long time = (timeEnd - timeBegin);
 		System.out.println("Finish");
-		System.out.println("Arestas: " + edge.intValue());
 		System.out.println("Tempo: " + Double.parseDouble((String.valueOf(time))) / 1000 + " segundos");
 	}
 }

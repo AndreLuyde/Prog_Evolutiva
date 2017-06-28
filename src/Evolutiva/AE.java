@@ -32,7 +32,7 @@ public class AE {
 		for (RouteSolution routeSolution : populacao) {
 			fitness(routeSolution);
 			if(melhorSolucao != null){
-				if(routeSolution.getTimeSolution() < melhorSolucao.getTimeSolution()){
+				if(routeSolution.getFitness() < melhorSolucao.getFitness()){
 					melhorSolucao = routeSolution;
 				}
 			}else{
@@ -177,13 +177,13 @@ public class AE {
 	}
 	
 	public RouteSolution torneio(RouteSolution solucao1, RouteSolution solucao2){
-		if(solucao1.getTimeSolution() == 0){
+		if(solucao1.getFitness() == 0){
 			fitness(solucao1);
 		}
-		if(solucao2.getTimeSolution() == 0){
+		if(solucao2.getFitness() == 0){
 			fitness(solucao2);
 		}
-		if(solucao1.getTimeSolution() > solucao2.getTimeSolution()){
+		if(solucao1.getFitness() > solucao2.getFitness()){
 			return solucao2;
 		}else{
 			return solucao1;
@@ -196,7 +196,7 @@ public class AE {
 		for (int i = 0; i < solucao.getSolution().size(); i++) {
 			distanciaTotal += solucao.getSolution().get(i).getDistancias().get(i);
 		}
-		solucao.setTimeSolution(distanciaTotal);
+		solucao.setFitness(distanciaTotal);
 		return distanciaTotal;
 	}
 
