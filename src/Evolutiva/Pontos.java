@@ -1,4 +1,5 @@
 package Evolutiva;
+
 import java.util.ArrayList;
 
 public class Pontos {
@@ -6,7 +7,7 @@ public class Pontos {
 	private int rotulo;
 	private int pontoX;
 	private int pontoY;
-	ArrayList<Integer> distancias = new ArrayList<Integer>();
+	private ArrayList<Integer> distancias ;
 	
 	public int getTime() {
 		return time;
@@ -38,5 +39,10 @@ public class Pontos {
 	}
 	public void setPontoY(int pontoY) {
 		this.pontoY = pontoY;
+	}
+	
+	@Override
+	public String toString() {
+		return String.valueOf(getRotulo());
 	}
 }

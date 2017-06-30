@@ -14,7 +14,7 @@ public class Principal {
 
 	public static void main(String[] args) throws IOException {
 		// Teste GA
-		Pontos p1 = new Pontos();
+//		Pontos p1 = new Pontos();
 //		p1.setDistancias(distancias);	
 		ArrayList<Pontos> pontos = new ArrayList<Pontos>();
 //		RouteProblem problema = new RouteProblem(100, pontos);
@@ -27,6 +27,7 @@ public class Principal {
 		Double edge = 0.0;
 		long timeBegin = 0;
 		String seconds = "";
+		int k = 0;
 
 		// ------------------------Leitura do arquivo
 		try {
@@ -41,15 +42,23 @@ public class Principal {
 
 				String linha = readArq.readLine();
 				while (linha != null) {
+//					if(linha.startsWith("n")){
+//						linha = linha.replaceAll(" ", "");
+//						String[] aux = linha.split("=");
+//						pontos = new Pontos[Integer.parseInt(aux[1])];
+//					}
 					if (!linha.startsWith("/") && !linha.isEmpty() && !linha.contains("n") && !linha.contains("D") && !linha.contains("[") && !linha.contains("]")) {
 						linha = linha.replaceAll(" ", "");
 						String[] aux = linha.split(",");
+						Pontos p1 = new Pontos();
 						p1.setPontoX(Integer.parseInt(aux[0]));
 						p1.setPontoX(Integer.parseInt(aux[1]));
 						p1.setRotulo(indexPontos);
+//						pontos[k] = p1;
 						pontos.add(p1);
+//						k++;
 						indexPontos++;
-						p1 = new Pontos();
+//						p1 = new Pontos();
 					}else if(linha.startsWith("[")){
 						int indexFim = linha.lastIndexOf("]");
 						String aux2 = linha.substring(1, indexFim-1);
@@ -60,6 +69,7 @@ public class Principal {
 							distancias.add(Integer.parseInt(aux3[i]));
 						}
 						pontos.get(indexDistancias).setDistancias(distancias);
+//						pontos[indexDistancias].setDistancias(distancias);
 						indexDistancias++;
 					}
 					linha = readArq.readLine();

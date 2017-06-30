@@ -7,7 +7,7 @@ import java.util.Random;
 public class AE {
 
 	private RouteProblem problema;
-	private ArrayList<RouteSolution> populacao;
+	private RouteSolution[] populacao;
 	private RouteSolution melhorSolucao;
 	private Double probabilidadeCruzamento;
 	private Double probabilidadeMutacao;
@@ -26,38 +26,38 @@ public class AE {
 
 	public void run() {
 	}
-	
-	public RouteSolution getMelhorSolucao(ArrayList<RouteSolution> populacao){
+
+	public RouteSolution getMelhorSolucao(RouteSolution[] populacao) {
 		RouteSolution melhorSolucao = null;
 		for (RouteSolution routeSolution : populacao) {
 			fitness(routeSolution);
-			if(melhorSolucao != null){
-				if(routeSolution.getFitness() < melhorSolucao.getFitness()){
+			if (melhorSolucao != null) {
+				if (routeSolution.getFitness() < melhorSolucao.getFitness()) {
 					melhorSolucao = routeSolution;
 				}
-			}else{
+			} else {
 				melhorSolucao = routeSolution;
 			}
 		}
 		setMelhorSolucao(melhorSolucao);
 		return melhorSolucao;
 	}
-	
-	private void cicloEvolucionario(){
-		
+
+	private void cicloEvolucionario() {
+
 	}
 
 	// Cruzamento de rota
 	public ArrayList<ArrayList<Pontos>> crossingRoute2Cut(RouteSolution individuo1, RouteSolution individuo2) {
 		// sorteia pontos de corte
-		int pontoCorte1 = r.nextInt((individuo1.getSolution().size() / 2) - 2) + 1;
-		int pontoCorte2 = r.nextInt((individuo1.getSolution().size() / 2) - 2) + individuo1.getSolution().size() / 2;
+		int pontoCorte1 = r.nextInt((individuo1.getSolucao().size() / 2) - 2) + 1;
+		int pontoCorte2 = r.nextInt((individuo1.getSolucao().size() / 2) - 2) + individuo1.getSolucao().size() / 2;
 
 		ArrayList<ArrayList<Pontos>> filhos = new ArrayList<ArrayList<Pontos>>();
 
 		// pega os genes dos pais
-		ArrayList<Pontos> genePai1 = individuo1.getSolution();
-		ArrayList<Pontos> genePai2 = individuo2.getSolution();
+		ArrayList<Pontos> genePai1 = individuo1.getSolucao();
+		ArrayList<Pontos> genePai2 = individuo2.getSolucao();
 		ArrayList<Pontos> geneFilho1 = new ArrayList<Pontos>();
 		ArrayList<Pontos> geneFilho2 = new ArrayList<Pontos>();
 
@@ -78,18 +78,19 @@ public class AE {
 		}
 		filhos.add(geneFilho1);
 		filhos.add(geneFilho2);
+
 		return filhos;
 	}
 
 	public ArrayList<ArrayList<Pontos>> crossingRoute1Cut(RouteSolution individuo1, RouteSolution individuo2) {
 		// sorteia o ponto de corte
-		int pontoCorte = r.nextInt((individuo1.getSolution().size() / 2) - 2) + individuo1.getSolution().size() / 2;
+		int pontoCorte = r.nextInt((individuo1.getSolucao().size() / 2) - 2) + individuo1.getSolucao().size() / 2;
 
 		ArrayList<ArrayList<Pontos>> filhos = new ArrayList<ArrayList<Pontos>>();
 
 		// pega os genes dos pais
-		ArrayList<Pontos> genePai1 = individuo1.getSolution();
-		ArrayList<Pontos> genePai2 = individuo2.getSolution();
+		ArrayList<Pontos> genePai1 = individuo1.getSolucao();
+		ArrayList<Pontos> genePai2 = individuo2.getSolucao();
 		ArrayList<Pontos> geneFilho1 = new ArrayList<Pontos>();
 		ArrayList<Pontos> geneFilho2 = new ArrayList<Pontos>();
 
@@ -116,91 +117,115 @@ public class AE {
 	// Mutacao da rota
 	public RouteSolution mutationRoute1(RouteSolution solution) {
 		Pontos temp = new Pontos();
-		int pontoAleatorio = r.nextInt((solution.getSolution().size()) - 2);
-		temp = solution.getSolution().get(pontoAleatorio);
-		solution.getSolution().set(pontoAleatorio, solution.getSolution().get(solution.getSolution().size() - 1));
-		solution.getSolution().set(solution.getSolution().size() - 1, temp);
+
+		int pontoAleatorio = r.nextInt((solution.getSolucao().size()) - 2);
+
+		temp = solution.getSolucao().get(pontoAleatorio);
+		solution.getSolucao().set(pontoAleatorio, solution.getSolucao().get(solution.getSolucao().size() - 1));
+		solution.getSolucao().set(solution.getSolucao().size() - 1, temp);
+
 		return solution;
 	}
 
 	public RouteSolution mutationRouteByChange(RouteSolution solution) {
 		Pontos temp = new Pontos();
-		int pontoAleatorio1 = r.nextInt((solution.getSolution().size()) - 1);
-		int pontoAleatorio2 = r.nextInt((solution.getSolution().size()) - 1);
-		temp = solution.getSolution().get(pontoAleatorio1);
-		solution.getSolution().set(pontoAleatorio1, solution.getSolution().get(pontoAleatorio2));
-		solution.getSolution().set(pontoAleatorio2, temp);
+
+		int pontoAleatorio1 = r.nextInt((solution.getSolucao().size()) - 1);
+		int pontoAleatorio2 = r.nextInt((solution.getSolucao().size()) - 1);
+
+		temp = solution.getSolucao().get(pontoAleatorio1);
+		solution.getSolucao().set(pontoAleatorio1, solution.getSolucao().get(pontoAleatorio2));
+		solution.getSolucao().set(pontoAleatorio2, temp);
+
 		return solution;
 	}
 
 	public RouteSolution mutationRouteByShuffle(RouteSolution solution) {
-		int pontoAleatorio1 = r.nextInt((solution.getSolution().size()) - 1);
-		int pontoAleatorio2 = r.nextInt((solution.getSolution().size()) - 1);
+		int pontoAleatorio1 = r.nextInt((solution.getSolucao().size()) - 1);
+		int pontoAleatorio2 = r.nextInt((solution.getSolucao().size()) - 1);
+
 		ArrayList<Pontos> listaPontos = new ArrayList<Pontos>();
+
 		if (pontoAleatorio2 < pontoAleatorio1) {
 			int aux = pontoAleatorio2;
 			pontoAleatorio1 = pontoAleatorio2;
 			pontoAleatorio2 = aux;
 		}
+
 		for (int i = pontoAleatorio1; i < pontoAleatorio2; i++) {
-			listaPontos.add(solution.getSolution().get(i));
+			listaPontos.add(solution.getSolucao().get(i));
 		}
+
 		Collections.shuffle(listaPontos);
+
 		int k = 0;
 		for (int i = pontoAleatorio1; i < pontoAleatorio2; i++) {
-			solution.getSolution().set(i, listaPontos.get(k));
+			solution.getSolucao().set(i, listaPontos.get(k));
 			k++;
 		}
+
 		return solution;
 	}
 
-	//seleção
-	public ArrayList<RouteSolution> selecao(ArrayList<RouteSolution> populacao, ArrayList<RouteSolution> novasSulucoes, int tamanhoPopulacao) {
+	// seleção
+	public ArrayList<RouteSolution> selecao(ArrayList<RouteSolution> populacao, ArrayList<RouteSolution> novasSulucoes,
+			int tamanhoPopulacao) {
 		RouteSolution aleatorio1 = null;
 		RouteSolution aleatorio2 = null;
+
 		for (RouteSolution routeSolution : novasSulucoes) {
 			populacao.add(routeSolution);
 		}
+
 		ArrayList<RouteSolution> populacaoFinal = new ArrayList<RouteSolution>();
+
 		for (int i = 0; i < tamanhoPopulacao; i++) {
 			int n = (int) (0 + Math.random() * populacao.size());
 			aleatorio1 = populacao.get(n);
+
 			n = (int) (0 + Math.random() * populacao.size());
 			aleatorio2 = populacao.get(n);
+
 			if (fitness(aleatorio1) < fitness(aleatorio2)) {
 				populacaoFinal.add(aleatorio1);
 			} else {
 				populacaoFinal.add(aleatorio2);
 			}
 		}
+
 		return populacaoFinal;
 	}
-	
-	public RouteSolution torneio(RouteSolution solucao1, RouteSolution solucao2){
-		if(solucao1.getFitness() == 0){
+
+	public RouteSolution torneio(RouteSolution solucao1, RouteSolution solucao2) {
+		if (solucao1.getFitness() == 0) {
 			fitness(solucao1);
 		}
-		if(solucao2.getFitness() == 0){
+		if (solucao2.getFitness() == 0) {
 			fitness(solucao2);
 		}
-		if(solucao1.getFitness() > solucao2.getFitness()){
+		if (solucao1.getFitness() > solucao2.getFitness()) {
 			return solucao2;
-		}else{
+		} else {
 			return solucao1;
 		}
 	}
 
-	//avaliação da solução
+	// avaliação da solução
 	private int fitness(RouteSolution solucao) {
 		int distanciaTotal = 0;
-		for (int i = 0; i < solucao.getSolution().size(); i++) {
-			distanciaTotal += solucao.getSolution().get(i).getDistancias().get(i);
+		for (int i = 0; i < solucao.getSolucao().size(); i++) {
+			if (i == solucao.getSolucao().size() - 1) {
+				distanciaTotal += solucao.getSolucao().get(i).getDistancias()
+						.get(solucao.getSolucao().get(0).getRotulo());
+			} else {
+				distanciaTotal += solucao.getSolucao().get(i).getDistancias()
+						.get(solucao.getSolucao().get(i + 1).getRotulo());
+			}
 		}
 		solucao.setFitness(distanciaTotal);
 		return distanciaTotal;
 	}
 
-	
 	// -----Get and Set
 	public RouteProblem getProblema() {
 		return problema;
@@ -210,16 +235,16 @@ public class AE {
 		this.problema = problema;
 	}
 
-	public ArrayList<RouteSolution> getPopulacao() {
+	public RouteSolution getMelhorSolucao() {
+		return melhorSolucao;
+	}
+
+	public RouteSolution[] getPopulacao() {
 		return populacao;
 	}
 
-	public void setPopulacao(ArrayList<RouteSolution> populacao) {
+	public void setPopulacao(RouteSolution[] populacao) {
 		this.populacao = populacao;
-	}
-
-	public RouteSolution getMelhorSolucao() {
-		return melhorSolucao;
 	}
 
 	public void setMelhorSolucao(RouteSolution melhorSolucao) {
@@ -229,8 +254,8 @@ public class AE {
 	public Double getProbabilidadeCruzamento() {
 		return probabilidadeCruzamento;
 	}
-	
-	//seta probabilidade de cruzamento
+
+	// seta probabilidade de cruzamento
 	public void setProbabilidadeCruzamento(Double probabilidadeCruzamento) {
 		this.probabilidadeCruzamento = probabilidadeCruzamento;
 	}
@@ -238,8 +263,8 @@ public class AE {
 	public Double getProbabilidadeMutacao() {
 		return probabilidadeMutacao;
 	}
-	
-	//seta a probabilidade de mutação
+
+	// seta a probabilidade de mutação
 	public void setProbabilidadeMutacao(Double probabilidadeMutacao) {
 		this.probabilidadeMutacao = probabilidadeMutacao;
 	}

@@ -6,20 +6,41 @@ import java.util.Random;
 
 public class RouteSolution {
 
-	private ArrayList<Pontos> solution = new ArrayList<Pontos>();
+	private ArrayList<Pontos> solucao = new ArrayList<Pontos>();
+//	private ArrayList<Pontos> solucao;
 	private int fitness;
 	Random r = new Random();
 
 	public RouteSolution(ArrayList<Pontos> pontos) {
 		Collections.shuffle(pontos);
-		this.setSolution(pontos);
+		this.setSolucao(pontos);
+	}
+	
+	public RouteSolution(RouteSolution solucao) {
+		setSolucao(solucao.getSolucao());
+		setFitness(solucao.getFitness());
+	}
+
+	// método estático que embaralha os elementos de um vetor de inteiros
+	public static void embaralhar(Pontos[] v) {
+		Random random = new Random();
+
+		for (int i = 0; i < (v.length - 1); i++) {
+			// sorteia um índice
+			int j = random.nextInt(v.length);
+
+			// troca o conteúdo dos índices i e j do vetor
+			Pontos temp = v[i];
+			v[i] = v[j];
+			v[j] = temp;
+		}
 	}
 
 	// mostra a solucao
-	public void printRoutSolution(ArrayList<Pontos> solution) {
+	public void printRoutSolution(Pontos[] solution) {
 		// for (Pontos client : solution) {
-		for (int i = 0; i < solution.size(); i++) {
-			System.out.println("Cliente: " + solution.get(i) + "HorÃ¡rio de coleta: " + solution.get(i).getTime());
+		for (int i = 0; i < solution.length; i++) {
+			System.out.println("Cliente: " + solution[i] + "Horario de coleta: " + solution[i].getTime());
 		}
 	}
 
@@ -40,14 +61,14 @@ public class RouteSolution {
 	// Cruzamento de rota
 	public ArrayList<ArrayList<Pontos>> crossingRoute2Cut(RouteSolution individuo1, RouteSolution individuo2) {
 		// sorteia pontos de corte
-		int pontoCorte1 = r.nextInt((individuo1.getSolution().size() / 2) - 2) + 1;
-		int pontoCorte2 = r.nextInt((individuo1.getSolution().size() / 2) - 2) + individuo1.getSolution().size() / 2;
+		int pontoCorte1 = r.nextInt((individuo1.getSolucao().size() / 2) - 2) + 1;
+		int pontoCorte2 = r.nextInt((individuo1.getSolucao().size() / 2) - 2) + individuo1.getSolucao().size() / 2;
 
 		ArrayList<ArrayList<Pontos>> filhos = new ArrayList<ArrayList<Pontos>>();
 
 		// pega os genes dos pais
-		ArrayList<Pontos> genePai1 = individuo1.getSolution();
-		ArrayList<Pontos> genePai2 = individuo2.getSolution();
+		ArrayList<Pontos> genePai1 = individuo1.getSolucao();
+		ArrayList<Pontos> genePai2 = individuo2.getSolucao();
 		ArrayList<Pontos> geneFilho1 = new ArrayList<Pontos>();
 		ArrayList<Pontos> geneFilho2 = new ArrayList<Pontos>();
 
@@ -73,13 +94,13 @@ public class RouteSolution {
 
 	public ArrayList<ArrayList<Pontos>> crossingRoute1Cut(RouteSolution individuo1, RouteSolution individuo2) {
 		// sorteia o ponto de corte
-		int pontoCorte = r.nextInt((individuo1.getSolution().size() / 2) - 2) + individuo1.getSolution().size() / 2;
+		int pontoCorte = r.nextInt((individuo1.getSolucao().size() / 2) - 2) + individuo1.getSolucao().size() / 2;
 
 		ArrayList<ArrayList<Pontos>> filhos = new ArrayList<ArrayList<Pontos>>();
 
 		// pega os genes dos pais
-		ArrayList<Pontos> genePai1 = individuo1.getSolution();
-		ArrayList<Pontos> genePai2 = individuo2.getSolution();
+		ArrayList<Pontos> genePai1 = individuo1.getSolucao();
+		ArrayList<Pontos> genePai2 = individuo2.getSolucao();
 		ArrayList<Pontos> geneFilho1 = new ArrayList<Pontos>();
 		ArrayList<Pontos> geneFilho2 = new ArrayList<Pontos>();
 
@@ -106,26 +127,26 @@ public class RouteSolution {
 	// Mutacao da rota
 	public RouteSolution mutationRoute1(RouteSolution solution) {
 		Pontos temp = new Pontos();
-		int pontoAleatorio = r.nextInt((solution.getSolution().size()) - 2);
-		temp = solution.getSolution().get(pontoAleatorio);
-		solution.getSolution().set(pontoAleatorio, solution.getSolution().get(solution.getSolution().size() - 1));
-		solution.getSolution().set(solution.getSolution().size() - 1, temp);
+		int pontoAleatorio = r.nextInt((solution.getSolucao().size()) - 2);
+		temp = solution.getSolucao().get(pontoAleatorio);
+		solution.getSolucao().set(pontoAleatorio, solution.getSolucao().get(solution.getSolucao().size()-1));
+		solution.getSolucao().set(solution.getSolucao().size()-1, temp);
 		return solution;
 	}
 
 	public RouteSolution mutationRouteByChange(RouteSolution solution) {
 		Pontos temp = new Pontos();
-		int pontoAleatorio1 = r.nextInt((solution.getSolution().size()) - 1);
-		int pontoAleatorio2 = r.nextInt((solution.getSolution().size()) - 1);
-		temp = solution.getSolution().get(pontoAleatorio1);
-		solution.getSolution().set(pontoAleatorio1, solution.getSolution().get(pontoAleatorio2));
-		solution.getSolution().set(pontoAleatorio2, temp);
+		int pontoAleatorio1 = r.nextInt((solution.getSolucao().size()) - 1);
+		int pontoAleatorio2 = r.nextInt((solution.getSolucao().size()) - 1);
+		temp = solution.getSolucao().get(pontoAleatorio1);
+		solution.getSolucao().set(pontoAleatorio1, solution.getSolucao().get(pontoAleatorio2));
+		solution.getSolucao().set(pontoAleatorio2, temp);
 		return solution;
 	}
 
 	public RouteSolution mutationRouteByShuffle(RouteSolution solution) {
-		int pontoAleatorio1 = r.nextInt((solution.getSolution().size()) - 1);
-		int pontoAleatorio2 = r.nextInt((solution.getSolution().size()) - 1);
+		int pontoAleatorio1 = r.nextInt((solution.getSolucao().size()) - 1);
+		int pontoAleatorio2 = r.nextInt((solution.getSolucao().size()) - 1);
 		ArrayList<Pontos> listaPontos = new ArrayList<Pontos>();
 		if (pontoAleatorio2 < pontoAleatorio1) {
 			int aux = pontoAleatorio2;
@@ -133,12 +154,12 @@ public class RouteSolution {
 			pontoAleatorio2 = aux;
 		}
 		for (int i = pontoAleatorio1; i < pontoAleatorio2; i++) {
-			listaPontos.add(solution.getSolution().get(i));
+			listaPontos.add(solution.getSolucao().get(i));
 		}
 		Collections.shuffle(listaPontos);
 		int k = 0;
 		for (int i = pontoAleatorio1; i < pontoAleatorio2; i++) {
-			solution.getSolution().set(i, listaPontos.get(k));
+			solution.getSolucao().set(i, listaPontos.get(k));
 			k++;
 		}
 		return solution;
@@ -157,14 +178,6 @@ public class RouteSolution {
 		return clientReturn;
 	}
 
-	public ArrayList<Pontos> getSolution() {
-		return solution;
-	}
-
-	public void setSolution(ArrayList<Pontos> solution) {
-		this.solution = solution;
-	}
-
 	public int getFitness() {
 		return fitness;
 	}
@@ -172,5 +185,21 @@ public class RouteSolution {
 	public void setFitness(int fitness) {
 		this.fitness = fitness;
 	}
+
+	public ArrayList<Pontos> getSolucao() {
+		return solucao;
+	}
+
+	public void setSolucao(ArrayList<Pontos> solucao) {
+		this.solucao = solucao;
+	}
+
+//	public Pontos[] getSolucao() {
+//		return solucao;
+//	}
+//
+//	public void setSolucao(Pontos[] solucao) {
+//		this.solucao = solucao;
+//	}
 
 }
