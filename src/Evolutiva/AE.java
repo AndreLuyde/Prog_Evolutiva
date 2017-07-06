@@ -13,9 +13,9 @@ public class AE {
 	private Double probabilidadeMutacao;
 	private int geracaoAtual;
 	private int tamanhoPopulacao;
-	// este bool definirá se a seleção para reprodução envolverá os pais
+	// este bool definirï¿½ se a seleï¿½ï¿½o para reproduï¿½ï¿½o envolverï¿½ os pais
 	private Boolean competicaoPaisFilhos;
-	// este double definirá a proporção entre pais e filhos
+	// este double definirï¿½ a proporï¿½ï¿½o entre pais e filhos
 	private Boolean proporcaoPaisFilhos;
 	Random r = new Random();
 
@@ -167,7 +167,7 @@ public class AE {
 		return solution;
 	}
 
-	// seleção
+	// seleï¿½ï¿½o
 	public ArrayList<RouteSolution> selecao(ArrayList<RouteSolution> populacao, ArrayList<RouteSolution> novasSulucoes,
 			int tamanhoPopulacao) {
 		RouteSolution aleatorio1 = null;
@@ -210,7 +210,7 @@ public class AE {
 		}
 	}
 
-	// avaliação da solução
+	// avaliaï¿½ï¿½o da soluï¿½ï¿½o
 	private int fitness(RouteSolution solucao) {
 		int distanciaTotal = 0;
 		for (int i = 0; i < solucao.getSolucao().size(); i++) {
@@ -264,7 +264,7 @@ public class AE {
 		return probabilidadeMutacao;
 	}
 
-	// seta a probabilidade de mutação
+	// seta a probabilidade de mutaï¿½ï¿½o
 	public void setProbabilidadeMutacao(Double probabilidadeMutacao) {
 		this.probabilidadeMutacao = probabilidadeMutacao;
 	}

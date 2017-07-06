@@ -11,19 +11,22 @@ public class Individuo {
 	private Double[] alpha;
 	Random r = new Random();
 	
-	public Individuo(RouteSolution solucao) {
+	public Individuo(RouteSolution solucao, Double sigma) {
+		setSigma(sigma);
+		Double tau = (double) (1/((solucao.getSolucao().size())^(1/2))); 
+		setTau(tau);
 		setSolution(solucao);
 	}
 
 	public void mutacao(Individuo individuo) {
-		//mutação correlacionada do sigma
+		//mutacao correlacionada do sigma
 		individuo.setSigma(individuo.getSigma() * Math.exp(individuo.getTau() * r.nextGaussian()));
 
-		//mutação nao-correlacionada
+		//mutacao nao-correlacionada
 		for (int i = 0; i < sigma2.length; i++) {
 			sigma2[i] = (Double) (individuo.getSigma() * Math.exp(individuo.getTau() * r.nextGaussian() + individuo.getTau() * r.nextGaussian()));
 		}
-		// mutação correlacionada
+		// mutacao correlacionada
 		for (int i = 0; i < sigma3.length; i++) {
 			sigma3[i] = (Double) (individuo.getSigma() * Math.exp(individuo.getTau() * r.nextGaussian() + individuo.getTau() * r.nextGaussian()));
 		}

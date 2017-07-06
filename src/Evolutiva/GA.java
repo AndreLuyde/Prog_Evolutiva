@@ -21,7 +21,7 @@ public class GA {
 		this.setMutationProbability(1 / problem.getNumClients());
 		this.setCrossProbability(0.9);
 
-		// inicializa a população
+		// inicializa a populacao
 		for (int i = 0; i < populationSize; i++) {
 			ArrayList<Pontos> pontos = new ArrayList<Pontos>(problem.getPontos());
 			Collections.shuffle(pontos);
@@ -46,19 +46,19 @@ public class GA {
 		int indice3 = -1;
 		int indice4 = -1;
 
-		// coloca em cada solução o fitness dela
+		// coloca em cada soluï¿½ï¿½o o fitness dela
 		for (RouteSolution routeSolution : populacao) {
 			fitness(routeSolution);
 		}
 
 		do {
-			// seleção de pontos para fazer seleção para cruzamento
+			// seleï¿½ï¿½o de pontos para fazer seleï¿½ï¿½o para cruzamento
 			indice1 = (int) (0 + Math.random() * populacao.size());
 			indice2 = (int) (0 + Math.random() * populacao.size());
 			indice3 = (int) (0 + Math.random() * populacao.size());
 			indice4 = (int) (0 + Math.random() * populacao.size());
 
-			// seleção de pais para cruzamento
+			// seleï¿½ï¿½o de pais para cruzamento
 			pai1 = torneio(populacao.get(indice1), populacao.get(indice2));
 			pai2 = torneio(populacao.get(indice3), populacao.get(indice4));
 
@@ -71,22 +71,22 @@ public class GA {
 				}
 			}
 
-			// verifica possibilidade de mutação
+			// verifica possibilidade de mutaï¿½ï¿½o
 			if (r.nextGaussian() < getMutationProbability()) {
 				populacao.add(mutationRouteByChange(pai1));
 			}
 
-			// selecao para proxima geração
+			// selecao para proxima geraï¿½ï¿½o
 			populacao = selecao(populacao, 100);
 			setGeracao(getGeracao() + 1);
 
-			// guarda melhor solução da geração
+			// guarda melhor soluï¿½ï¿½o da geraï¿½ï¿½o
 			// RouteSolution melhorSolucaoGeracao = null;
 			RouteSolution melhorSolucaoGeracao = new RouteSolution(getMelhorSolucao(populacao));
 			if (getBestSolution() == null) {
 				setBestSolution(melhorSolucaoGeracao);
-				// mostra melhor solução da geração
-				System.out.println("Solução Da " + getGeracao() + " geração");
+				// mostra melhor soluï¿½ï¿½o da geraï¿½ï¿½o
+				System.out.println("Soluï¿½ï¿½o Da " + getGeracao() + " geraï¿½ï¿½o");
 				for (Pontos ponto : melhorSolucaoGeracao.getSolucao()) {
 					System.out.print("| " + ponto.getRotulo() + " ");
 				}
@@ -95,8 +95,8 @@ public class GA {
 
 			} else if (melhorSolucaoGeracao.getFitness() < getBestSolution().getFitness()) {
 				setBestSolution(melhorSolucaoGeracao);
-				// mostra melhor solução da geração
-				System.out.println("Solução Da " + getGeracao() + " geração");
+				// mostra melhor soluï¿½ï¿½o da geraï¿½ï¿½o
+				System.out.println("Soluï¿½ï¿½o Da " + getGeracao() + " geraï¿½ï¿½o");
 				for (Pontos ponto : melhorSolucaoGeracao.getSolucao()) {
 					System.out.print("| " + ponto.getRotulo() + " ");
 				}
@@ -104,14 +104,14 @@ public class GA {
 				System.out.println("Fitness: " + melhorSolucaoGeracao.getFitness());
 			}
 
-			// atualiza critério de parada
+			// atualiza critï¿½rio de parada
 			long actualTime = System.currentTimeMillis();
 			long time = (actualTime - tempoInicial);
 			timeDouble = Double.parseDouble((String.valueOf(time))) / 1000;
 
 		} while (timeFimExecucao > timeDouble);
 
-		System.out.println("Melhor Solução encontrada");
+		System.out.println("Melhor Soluï¿½ï¿½o encontrada");
 		for (Pontos ponto : getBestSolution().getSolucao()) {
 			System.out.print("| " + ponto.getRotulo() + " ");
 		}
@@ -186,7 +186,7 @@ public class GA {
 		return filhos;
 	}
 
-	// Mutação
+	// Mutacao
 	public RouteSolution mutationRouteByChange(RouteSolution solution) {
 		Pontos temp = new Pontos();
 		int pontoAleatorio1 = r.nextInt((solution.getSolucao().size()) - 1);
