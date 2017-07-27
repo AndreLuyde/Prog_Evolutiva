@@ -7,10 +7,10 @@ import java.util.Random;
 public class AE {
 
 	private RouteProblem problema;
-	private RouteSolution[] populacao;
-	private RouteSolution melhorSolucao;
-	private Double probabilidadeCruzamento;
-	private Double probabilidadeMutacao;
+	private ArrayList<RouteSolution> populacao = new ArrayList<RouteSolution>();
+	private RouteSolution bestSolution;
+	private double crossProbability;
+	private double mutationProbability;
 	private int geracaoAtual;
 	private int tamanhoPopulacao;
 	// este bool definir� se a sele��o para reprodu��o envolver� os pais
@@ -24,10 +24,11 @@ public class AE {
 		setTamanhoPopulacao(tamanhoPopulacao);
 	}
 
-	public void run() {
+	public void run(long timeFimExecucao, long tempoInicial) {
+		cicloEvolucionario(getPopulacao(), timeFimExecucao, tempoInicial);
 	}
 
-	public RouteSolution getMelhorSolucao(RouteSolution[] populacao) {
+	public RouteSolution getMelhorSolucao(ArrayList<RouteSolution> populacao) {
 		RouteSolution melhorSolucao = null;
 		for (RouteSolution routeSolution : populacao) {
 			fitness(routeSolution);
@@ -39,12 +40,101 @@ public class AE {
 				melhorSolucao = routeSolution;
 			}
 		}
-		setMelhorSolucao(melhorSolucao);
+		setBestSolution(melhorSolucao);
 		return melhorSolucao;
 	}
 
-	private void cicloEvolucionario() {
+	private void cicloEvolucionario(ArrayList<RouteSolution> populacao, long timeFimExecucao, long tempoInicial) {
+		ArrayList<ArrayList<Pontos>> filhos = new ArrayList<ArrayList<Pontos>>();
+		Double timeDouble = 0d;
+		RouteSolution pai1 = null;
+		RouteSolution pai2 = null;
+		RouteSolution filho = null;
+		// RouteSolution melhorSolucaoGeracao = null;
+		int indice1 = -1;
+		int indice2 = -1;
+		int indice3 = -1;
+		int indice4 = -1;
 
+		// coloca em cada solu��o o fitness dela
+		for (RouteSolution routeSolution : populacao) {
+			fitness(routeSolution);
+		}
+
+		do {
+			// sele��o de pontos para fazer sele��o para cruzamento
+			indice1 = (int) (0 + Math.random() * populacao.size());
+			indice2 = (int) (0 + Math.random() * populacao.size());
+			indice3 = (int) (0 + Math.random() * populacao.size());
+			indice4 = (int) (0 + Math.random() * populacao.size());
+
+			// sele��o de pais para cruzamento
+			pai1 = torneio(populacao.get(indice1), populacao.get(indice2));
+			pai2 = torneio(populacao.get(indice3), populacao.get(indice4));
+
+			// verifica probabilidade de cruzamento
+			if (r.nextGaussian() < getCrossProbability()) {
+				filhos = crossingRoute2Cut(pai1, pai2);
+				for (ArrayList<Pontos> arrayList : filhos) {
+					filho = new RouteSolution(arrayList);
+					populacao.add(filho);
+				}
+			}
+
+			// verifica possibilidade de muta��o
+			if (r.nextGaussian() < getMutationProbability()) {
+				populacao.add(mutationRouteByChange(pai1));
+			}
+
+			// faz busca local em N indivíduos
+			Individuo teste = new Individuo(pai1, 0.5);
+			buscaLocal(teste);
+
+			// selecao para proxima gera��o
+			populacao = selecao(populacao, populacao, 100);
+			setGeracaoAtual(getGeracaoAtual() + 1);
+
+			// guarda melhor solu��o da gera��o
+			// RouteSolution melhorSolucaoGeracao = null;
+			RouteSolution melhorSolucaoGeracao = new RouteSolution(getMelhorSolucao(populacao));
+			if (getBestSolution() == null) {
+				setBestSolution(melhorSolucaoGeracao);
+				// mostra melhor solu��o da gera��o
+				System.out.println("Solu��o Da " + getGeracaoAtual() + " gera��o");
+				for (Pontos ponto : melhorSolucaoGeracao.getSolucao()) {
+					System.out.print("| " + ponto.getRotulo() + " ");
+				}
+				System.out.println("|");
+				System.out.println("Fitness: " + melhorSolucaoGeracao.getFitness());
+
+			} else if (melhorSolucaoGeracao.getFitness() < getBestSolution().getFitness()) {
+				setBestSolution(melhorSolucaoGeracao);
+				// mostra melhor solucao da geracao
+				System.out.println("Solu��o Da " + getGeracaoAtual() + " gera��o");
+				for (Pontos ponto : melhorSolucaoGeracao.getSolucao()) {
+					System.out.print("| " + ponto.getRotulo() + " ");
+				}
+				System.out.println("|");
+				System.out.println("Fitness: " + melhorSolucaoGeracao.getFitness());
+			}
+
+			// atualiza criterio de parada
+			long actualTime = System.currentTimeMillis();
+			long time = (actualTime - tempoInicial);
+			timeDouble = Double.parseDouble((String.valueOf(time))) / 1000;
+
+		} while (timeFimExecucao > timeDouble);
+
+		System.out.println("Melhor Solu��o encontrada");
+		for (Pontos ponto : getBestSolution().getSolucao()) {
+			System.out.print("| " + ponto.getRotulo() + " ");
+		}
+		System.out.println("|");
+		System.out.println("Fitness: " + getBestSolution().getFitness());
+		// int indice =
+
+		// cruzamento
+		// crossingRoute2Cut(populacao.get(indice1), populacao.get(indice2));
 	}
 
 	// Cruzamento de rota
@@ -226,6 +316,59 @@ public class AE {
 		return distanciaTotal;
 	}
 
+	// busca local para cada individuo
+	private void buscaLocal(Individuo individuo) {
+		RouteSolution melhorSolucao = new RouteSolution(individuo.getSolution());
+
+		int iteracoes = 0;
+		while (iteracoes < 100) {
+			RouteSolution novaSolucao = new RouteSolution(geraNovoVizinho(individuo.getSolution()));
+			fitness(novaSolucao);
+			if (melhorSolucao.getFitness() < novaSolucao.getFitness()) {
+				melhorSolucao = new RouteSolution(novaSolucao);
+			}
+			iteracoes++;
+		}
+		individuo.setSolution(melhorSolucao);
+	}
+
+	private RouteSolution geraNovoVizinho(RouteSolution solution) {
+		int pontoAleatorio1 = r.nextInt((solution.getSolucao().size()) - 1);
+		int pontoAleatorio2 = r.nextInt((solution.getSolucao().size()) - 1);
+		ArrayList<Pontos> pontosModificados = new ArrayList<Pontos>();
+
+		if (pontoAleatorio2 < pontoAleatorio1) {
+			int aux = pontoAleatorio2;
+			pontoAleatorio1 = pontoAleatorio2;
+			pontoAleatorio2 = aux;
+		}
+		int menorDistancia = -1;
+		pontosModificados.add(solution.getSolucao().get(pontoAleatorio1));
+		for (int i = pontoAleatorio1 + 1; i < pontoAleatorio2; i++) {
+			menorDistancia = getVizinhoMaisProximo(solution.getSolucao().get(pontoAleatorio1).getDistancias());
+			if (menorDistancia != -1) {
+				pontosModificados.add(solution.getSolucao().get(menorDistancia));
+				menorDistancia = -1;
+			}
+		}
+		for (int i = pontoAleatorio1; i < pontoAleatorio2; i++) {
+			solution.getSolucao().set(i, pontosModificados.get(i));
+		}
+		return solution;
+	}
+
+	private int getVizinhoMaisProximo(ArrayList<Integer> distancias) {
+		int menor = distancias.get(0);
+		int indiceMenor = 0;
+		for (int i = 1; i < distancias.size(); i++) {
+			if (distancias.get(i) < menor) {
+				menor = distancias.get(i);
+				indiceMenor = i;
+			}
+		}
+		return indiceMenor;
+	}
+
 	// -----Get and Set
 	public RouteProblem getProblema() {
 		return problema;
@@ -235,38 +378,36 @@ public class AE {
 		this.problema = problema;
 	}
 
-	public RouteSolution getMelhorSolucao() {
-		return melhorSolucao;
-	}
-
-	public RouteSolution[] getPopulacao() {
+	public ArrayList<RouteSolution> getPopulacao() {
 		return populacao;
 	}
 
-	public void setPopulacao(RouteSolution[] populacao) {
+	public void setPopulacao(ArrayList<RouteSolution> populacao) {
 		this.populacao = populacao;
 	}
 
-	public void setMelhorSolucao(RouteSolution melhorSolucao) {
-		this.melhorSolucao = melhorSolucao;
+	public RouteSolution getBestSolution() {
+		return bestSolution;
 	}
 
-	public Double getProbabilidadeCruzamento() {
-		return probabilidadeCruzamento;
+	public void setBestSolution(RouteSolution bestSolution) {
+		this.bestSolution = bestSolution;
 	}
 
-	// seta probabilidade de cruzamento
-	public void setProbabilidadeCruzamento(Double probabilidadeCruzamento) {
-		this.probabilidadeCruzamento = probabilidadeCruzamento;
+	public double getCrossProbability() {
+		return crossProbability;
 	}
 
-	public Double getProbabilidadeMutacao() {
-		return probabilidadeMutacao;
+	public void setCrossProbability(double crossProbability) {
+		this.crossProbability = crossProbability;
 	}
 
-	// seta a probabilidade de muta��o
-	public void setProbabilidadeMutacao(Double probabilidadeMutacao) {
-		this.probabilidadeMutacao = probabilidadeMutacao;
+	public double getMutationProbability() {
+		return mutationProbability;
+	}
+
+	public void setMutationProbability(double mutationProbability) {
+		this.mutationProbability = mutationProbability;
 	}
 
 	public int getGeracaoAtual() {
