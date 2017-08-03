@@ -8,6 +8,8 @@ public class Pontos {
 	private int pontoX;
 	private int pontoY;
 	private ArrayList<Integer> distancias ;
+	private int iniTW;
+	private int endTW;
 	
 	public int getTime() {
 		return time;
@@ -44,5 +46,17 @@ public class Pontos {
 	@Override
 	public String toString() {
 		return String.valueOf(getRotulo());
+	}
+	public int getIniTW() {
+		return iniTW;
+	}
+	public void setIniTW(int iniTW) {
+		this.iniTW = iniTW;
+	}
+	public int getEndTW() {
+		return endTW;
+	}
+	public void setEndTW(int endTW) {
+		this.endTW = endTW;
 	}
 }
