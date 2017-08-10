@@ -70,9 +70,9 @@ public class Experimentos {
 				String aux2 = linha.substring(1, indexFim-1);
 				aux2 = aux2.replaceAll(" ", "");
 				String[] aux3 = aux2.split(",");
-				ArrayList<Integer> distancias = new ArrayList<Integer>();
+				ArrayList<Double> distancias = new ArrayList<Double>();
 				for(int i=0;i<aux3.length;i++){
-					distancias.add(Integer.parseInt(aux3[i]));
+					distancias.add(Double.parseDouble(aux3[i]));
 				}
 				pontos.get(indexDistancias).setDistancias(distancias);
 				indexDistancias++;

@@ -13,9 +13,9 @@ public class AE {
 	private double mutationProbability;
 	private int geracaoAtual;
 	private int tamanhoPopulacao;
-	// este bool definir� se a sele��o para reprodu��o envolver� os pais
+	// este bool definirá se a seleção para reprodução envolverá os pais
 	private Boolean competicaoPaisFilhos;
-	// este double definir� a propor��o entre pais e filhos
+	// este double definirá a proporção entre pais e filhos
 	private Boolean proporcaoPaisFilhos;
 	Random r = new Random();
 
@@ -56,19 +56,19 @@ public class AE {
 		int indice3 = -1;
 		int indice4 = -1;
 
-		// coloca em cada solu��o o fitness dela
+		// coloca em cada solução o fitness dela
 		for (RouteSolution routeSolution : populacao) {
 			fitness(routeSolution);
 		}
 
 		do {
-			// sele��o de pontos para fazer sele��o para cruzamento
+			// seleção de pontos para fazer seleção para cruzamento
 			indice1 = (int) (0 + Math.random() * populacao.size());
 			indice2 = (int) (0 + Math.random() * populacao.size());
 			indice3 = (int) (0 + Math.random() * populacao.size());
 			indice4 = (int) (0 + Math.random() * populacao.size());
 
-			// sele��o de pais para cruzamento
+			// seleção de pais para cruzamento
 			pai1 = torneio(populacao.get(indice1), populacao.get(indice2));
 			pai2 = torneio(populacao.get(indice3), populacao.get(indice4));
 
@@ -81,7 +81,7 @@ public class AE {
 				}
 			}
 
-			// verifica possibilidade de muta��o
+			// verifica possibilidade de mutação
 			if (r.nextGaussian() < getMutationProbability()) {
 				populacao.add(mutationRouteByChange(pai1));
 			}
@@ -90,17 +90,17 @@ public class AE {
 			Individuo teste = new Individuo(pai1, 0.5);
 			buscaLocal(teste);
 
-			// selecao para proxima gera��o
+			// selecao para proxima geração
 			populacao = selecao(populacao, populacao, 100);
 			setGeracaoAtual(getGeracaoAtual() + 1);
 
-			// guarda melhor solu��o da gera��o
+			// guarda melhor solução da geração
 			// RouteSolution melhorSolucaoGeracao = null;
 			RouteSolution melhorSolucaoGeracao = new RouteSolution(getMelhorSolucao(populacao));
 			if (getBestSolution() == null) {
 				setBestSolution(melhorSolucaoGeracao);
-				// mostra melhor solu��o da gera��o
-				System.out.println("Solu��o Da " + getGeracaoAtual() + " gera��o");
+				// mostra melhor solução da geração
+				System.out.println("Solução Da " + getGeracaoAtual() + " geração");
 				for (Pontos ponto : melhorSolucaoGeracao.getSolucao()) {
 					System.out.print("| " + ponto.getRotulo() + " ");
 				}
@@ -109,8 +109,8 @@ public class AE {
 
 			} else if (melhorSolucaoGeracao.getFitness() < getBestSolution().getFitness()) {
 				setBestSolution(melhorSolucaoGeracao);
-				// mostra melhor solucao da geracao
-				System.out.println("Solu��o Da " + getGeracaoAtual() + " gera��o");
+				// mostra melhor solucao da geração
+				System.out.println("Solução Da " + getGeracaoAtual() + " geração");
 				for (Pontos ponto : melhorSolucaoGeracao.getSolucao()) {
 					System.out.print("| " + ponto.getRotulo() + " ");
 				}
@@ -125,7 +125,7 @@ public class AE {
 
 		} while (timeFimExecucao > timeDouble);
 
-		System.out.println("Melhor Solu��o encontrada");
+		System.out.println("Melhor Solução encontrada");
 		for (Pontos ponto : getBestSolution().getSolucao()) {
 			System.out.print("| " + ponto.getRotulo() + " ");
 		}
@@ -257,7 +257,7 @@ public class AE {
 		return solution;
 	}
 
-	// sele��o
+	// seleção
 	public ArrayList<RouteSolution> selecao(ArrayList<RouteSolution> populacao, ArrayList<RouteSolution> novasSulucoes,
 			int tamanhoPopulacao) {
 		RouteSolution aleatorio1 = null;
@@ -300,7 +300,7 @@ public class AE {
 		}
 	}
 
-	// avalia��o da solu��o
+	// avaliação da solução
 	private int fitness(RouteSolution solucao) {
 		int distanciaTotal = 0;
 		for (int i = 0; i < solucao.getSolucao().size(); i++) {
@@ -357,8 +357,8 @@ public class AE {
 		return solution;
 	}
 
-	private int getVizinhoMaisProximo(ArrayList<Integer> distancias) {
-		int menor = distancias.get(0);
+	private int getVizinhoMaisProximo(ArrayList<Double> distancias) {
+		double menor = distancias.get(0);
 		int indiceMenor = 0;
 		for (int i = 1; i < distancias.size(); i++) {
 			if (distancias.get(i) < menor) {

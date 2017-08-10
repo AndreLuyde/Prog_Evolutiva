@@ -7,7 +7,7 @@ public class Pontos {
 	private int rotulo;
 	private int pontoX;
 	private int pontoY;
-	private ArrayList<Integer> distancias ;
+	private ArrayList<Double> distancias = new ArrayList<Double>();
 	private int iniTW;
 	private int endTW;
 	
@@ -18,10 +18,10 @@ public class Pontos {
 		this.time = time;
 	}
 	
-	public ArrayList<Integer> getDistancias() {
+	public ArrayList<Double> getDistancias() {
 		return distancias;
 	}
-	public void setDistancias(ArrayList<Integer> distancias) {
+	public void setDistancias(ArrayList<Double> distancias) {
 		this.distancias = distancias;
 	}
 	public int getRotulo() {
