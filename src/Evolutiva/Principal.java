@@ -13,21 +13,12 @@ public class Principal {
 	private static BufferedReader readArq;
 
 	public static void main(String[] args) throws IOException {
-		// Teste GA
-		// Pontos p1 = new Pontos();
-		// p1.setDistancias(distancias);
 		ArrayList<Pontos> pontos = new ArrayList<Pontos>();
-		// RouteProblem problema = new RouteProblem(100, pontos);
-		// RouteSolution solucao = new RouteSolution(problema, pontos, 0);
 
 		// leitura arquivo com rotas
-		int tamanho = 0;
 		int indexPontos = 0;
-		int indexDistancias = 0;
-		Double edge = 0.0;
 		long timeBegin = 0;
 		String seconds = "";
-		int k = 0;
 
 		// ------------------------Leitura do arquivo
 		try {
@@ -70,19 +61,25 @@ public class Principal {
 		// calcula as distâncias
 		calcularDistancias(pontos);
 
+		RouteProblem problema = new RouteProblem(pontos.size(), pontos);
+
 		// execução GA
 		long tempoInicial = System.currentTimeMillis();
-		RouteProblem problema = new RouteProblem(pontos.size(), pontos);
 		GA ga = new GA(problema, 100);
 		long tempoFinal = Long.parseLong(seconds);
 		ga.run(tempoFinal, tempoInicial);
 
+		//execução AE
+		AE ae = new AE(problema, 50, true, true);
+		ae.run(tempoFinal, tempoInicial);
+		
 		long timeEnd = System.currentTimeMillis();
 		long time = (timeEnd - timeBegin);
 		System.out.println("Finish");
 		System.out.println("Tempo: " + Double.parseDouble((String.valueOf(time))) / 1000 + " segundos");
 	}
-
+	
+	//calcula distancia em todos os pontos
 	static void calcularDistancias(ArrayList<Pontos> pontos) {
 		for (int i = 0; i < pontos.size(); i++) {
 			for (int j = 0; j < pontos.size(); j++) {
@@ -97,7 +94,7 @@ public class Principal {
 
 	// Calcula distancia entre dois pontos
 	static double distanciaEntrePontos(Pontos p1, Pontos p2) {
-		double distance = Math.sqrt(((p2.getPontoX() - p2.getPontoX())^ 2) + ((p2.getPontoY() - p1.getPontoY())^ 2));
+		double distance = Math.sqrt(Math.pow((p2.getPontoX() - p2.getPontoX()), 2) + Math.pow((p2.getPontoY() - p1.getPontoY()), 2));
 		return distance;
 	}
 

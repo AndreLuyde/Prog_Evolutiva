@@ -16,12 +16,23 @@ public class AE {
 	// este bool definirá se a seleção para reprodução envolverá os pais
 	private Boolean competicaoPaisFilhos;
 	// este double definirá a proporção entre pais e filhos
-	private Boolean proporcaoPaisFilhos;
+	private Double proporcaoPaisFilhos;
+	private Boolean autoAdaptacao;
 	Random r = new Random();
 
-	public AE(RouteProblem problema, int tamanhoPopulacao) {
-		setProblema(problema);
-		setTamanhoPopulacao(tamanhoPopulacao);
+	public AE(RouteProblem problem, int populationSize, Boolean autoAdaptacao, Boolean competicaoPaisFilhos) {
+		setProblema(problem);
+		setTamanhoPopulacao(populationSize);
+		setAutoAdaptacao(autoAdaptacao);
+		setCompeticaoPaisFilhos(competicaoPaisFilhos);
+		
+		// inicializa a populacao
+		for (int i = 0; i < populationSize; i++) {
+			ArrayList<Pontos> pontos = new ArrayList<Pontos>(problem.getPontos());
+			Collections.shuffle(pontos);
+			RouteSolution solucaoTemp = new RouteSolution(pontos);
+			getPopulacao().add(solucaoTemp);
+		}
 	}
 
 	public void run(long timeFimExecucao, long tempoInicial) {
@@ -305,11 +316,9 @@ public class AE {
 		int distanciaTotal = 0;
 		for (int i = 0; i < solucao.getSolucao().size(); i++) {
 			if (i == solucao.getSolucao().size() - 1) {
-				distanciaTotal += solucao.getSolucao().get(i).getDistancias()
-						.get(solucao.getSolucao().get(0).getRotulo());
+				distanciaTotal += solucao.getSolucao().get(i).getDistancias().get(solucao.getSolucao().get(0).getRotulo() -1);
 			} else {
-				distanciaTotal += solucao.getSolucao().get(i).getDistancias()
-						.get(solucao.getSolucao().get(i + 1).getRotulo());
+				distanciaTotal += solucao.getSolucao().get(i).getDistancias().get(solucao.getSolucao().get(i + 1).getRotulo() -1);
 			}
 		}
 		solucao.setFitness(distanciaTotal);
@@ -341,6 +350,8 @@ public class AE {
 			int aux = pontoAleatorio2;
 			pontoAleatorio1 = pontoAleatorio2;
 			pontoAleatorio2 = aux;
+		}else{
+			pontoAleatorio2 += 1;
 		}
 		int menorDistancia = -1;
 		pontosModificados.add(solution.getSolucao().get(pontoAleatorio1));
@@ -426,11 +437,11 @@ public class AE {
 		this.competicaoPaisFilhos = competicaoPaisFilhos;
 	}
 
-	public Boolean getProporcaoPaisFilhos() {
+	public Double getProporcaoPaisFilhos() {
 		return proporcaoPaisFilhos;
 	}
 
-	public void setProporcaoPaisFilhos(Boolean proporcaoPaisFilhos) {
+	public void setProporcaoPaisFilhos(Double proporcaoPaisFilhos) {
 		this.proporcaoPaisFilhos = proporcaoPaisFilhos;
 	}
 
@@ -440,5 +451,13 @@ public class AE {
 
 	public void setTamanhoPopulacao(int tamanhoPopulacao) {
 		this.tamanhoPopulacao = tamanhoPopulacao;
+	}
+
+	public Boolean getAutoAdaptacao() {
+		return autoAdaptacao;
+	}
+
+	public void setAutoAdaptacao(Boolean autoAdaptacao) {
+		this.autoAdaptacao = autoAdaptacao;
 	}
 }

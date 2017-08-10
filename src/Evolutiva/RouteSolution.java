@@ -8,7 +8,7 @@ public class RouteSolution {
 
 	private ArrayList<Pontos> solucao = new ArrayList<Pontos>();
 //	private ArrayList<Pontos> solucao;
-	private int fitness;
+	private double fitness;
 	Random r = new Random();
 
 	public RouteSolution(ArrayList<Pontos> pontos) {
@@ -21,15 +21,15 @@ public class RouteSolution {
 		setFitness(solucao.getFitness());
 	}
 
-	// método estático que embaralha os elementos de um vetor de inteiros
+	// mï¿½todo estï¿½tico que embaralha os elementos de um vetor de inteiros
 	public static void embaralhar(Pontos[] v) {
 		Random random = new Random();
 
 		for (int i = 0; i < (v.length - 1); i++) {
-			// sorteia um índice
+			// sorteia um ï¿½ndice
 			int j = random.nextInt(v.length);
 
-			// troca o conteúdo dos índices i e j do vetor
+			// troca o conteï¿½do dos ï¿½ndices i e j do vetor
 			Pontos temp = v[i];
 			v[i] = v[j];
 			v[j] = temp;
@@ -178,11 +178,11 @@ public class RouteSolution {
 		return clientReturn;
 	}
 
-	public int getFitness() {
+	public double getFitness() {
 		return fitness;
 	}
 
-	public void setFitness(int fitness) {
+	public void setFitness(double fitness) {
 		this.fitness = fitness;
 	}
 
