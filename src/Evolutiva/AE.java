@@ -25,7 +25,7 @@ public class AE {
 		setTamanhoPopulacao(populationSize);
 		setAutoAdaptacao(autoAdaptacao);
 		setCompeticaoPaisFilhos(competicaoPaisFilhos);
-		
+
 		// inicializa a populacao
 		for (int i = 0; i < populationSize; i++) {
 			ArrayList<Pontos> pontos = new ArrayList<Pontos>(problem.getPontos());
@@ -36,7 +36,7 @@ public class AE {
 	}
 
 	public void run(long timeFimExecucao, long tempoInicial) {
-		cicloEvolucionario(getPopulacao(), timeFimExecucao, tempoInicial);
+		cicloEvolucionario(getPopulacao(), timeFimExecucao, tempoInicial, getAutoAdaptacao());
 	}
 
 	public RouteSolution getMelhorSolucao(ArrayList<RouteSolution> populacao) {
@@ -55,7 +55,7 @@ public class AE {
 		return melhorSolucao;
 	}
 
-	private void cicloEvolucionario(ArrayList<RouteSolution> populacao, long timeFimExecucao, long tempoInicial) {
+	private void cicloEvolucionario(ArrayList<RouteSolution> populacao, long timeFimExecucao, long tempoInicial, boolean autoAdaptacao) {
 		ArrayList<ArrayList<Pontos>> filhos = new ArrayList<ArrayList<Pontos>>();
 		Double timeDouble = 0d;
 		RouteSolution pai1 = null;
@@ -71,7 +71,17 @@ public class AE {
 		for (RouteSolution routeSolution : populacao) {
 			fitness(routeSolution);
 		}
-
+		
+		if(autoAdaptacao) {
+			ArrayList<Individuo> popIndividuos = new ArrayList<Individuo>();
+			Individuo individuo;
+			for (RouteSolution routeSolution : populacao) {
+				individuo = new Individuo(routeSolution, 0.8);
+				popIndividuos.add(individuo);
+			}
+		}
+		
+		
 		do {
 			// seleção de pontos para fazer seleção para cruzamento
 			indice1 = (int) (0 + Math.random() * populacao.size());
@@ -102,7 +112,7 @@ public class AE {
 			buscaLocal(teste);
 
 			// selecao para proxima geração
-			populacao = selecao(populacao, populacao, 100);
+			populacao = selecao(populacao, populacao, 100, getProporcaoPaisFilhos(), getCompeticaoPaisFilhos());
 			setGeracaoAtual(getGeracaoAtual() + 1);
 
 			// guarda melhor solução da geração
@@ -270,27 +280,58 @@ public class AE {
 
 	// seleção
 	public ArrayList<RouteSolution> selecao(ArrayList<RouteSolution> populacao, ArrayList<RouteSolution> novasSulucoes,
-			int tamanhoPopulacao) {
+			int tamanhoPopulacao, double proporcaoPaiFilhos, boolean competicaoPaisFilhos) {
 		RouteSolution aleatorio1 = null;
 		RouteSolution aleatorio2 = null;
-
-		for (RouteSolution routeSolution : novasSulucoes) {
-			populacao.add(routeSolution);
-		}
-
 		ArrayList<RouteSolution> populacaoFinal = new ArrayList<RouteSolution>();
 
-		for (int i = 0; i < tamanhoPopulacao; i++) {
-			int n = (int) (0 + Math.random() * populacao.size());
-			aleatorio1 = populacao.get(n);
+		if (competicaoPaisFilhos) {
+			for (RouteSolution routeSolution : novasSulucoes) {
+				populacao.add(routeSolution);
+			}
 
-			n = (int) (0 + Math.random() * populacao.size());
-			aleatorio2 = populacao.get(n);
+			for (int i = 0; i < tamanhoPopulacao * proporcaoPaiFilhos; i++) {
+				int n = (int) (0 + Math.random() * populacao.size());
+				aleatorio1 = populacao.get(n);
 
-			if (fitness(aleatorio1) < fitness(aleatorio2)) {
-				populacaoFinal.add(aleatorio1);
-			} else {
-				populacaoFinal.add(aleatorio2);
+				n = (int) (0 + Math.random() * populacao.size());
+				aleatorio2 = populacao.get(n);
+
+				if (fitness(aleatorio1) < fitness(aleatorio2)) {
+					populacaoFinal.add(aleatorio1);
+				} else {
+					populacaoFinal.add(aleatorio2);
+				}
+			}
+		} else {
+			// pais
+			for (int i = 0; i < tamanhoPopulacao * proporcaoPaiFilhos; i++) {
+				int n = (int) (0 + Math.random() * populacao.size());
+				aleatorio1 = populacao.get(n);
+
+				n = (int) (0 + Math.random() * populacao.size());
+				aleatorio2 = populacao.get(n);
+
+				if (fitness(aleatorio1) < fitness(aleatorio2)) {
+					populacaoFinal.add(aleatorio1);
+				} else {
+					populacaoFinal.add(aleatorio2);
+				}
+			}
+
+			// filhos
+			while (populacaoFinal.size() <= tamanhoPopulacao) {
+				int n = (int) (0 + Math.random() * novasSulucoes.size());
+				aleatorio1 = novasSulucoes.get(n);
+
+				n = (int) (0 + Math.random() * novasSulucoes.size());
+				aleatorio2 = novasSulucoes.get(n);
+
+				if (fitness(aleatorio1) < fitness(aleatorio2)) {
+					populacaoFinal.add(aleatorio1);
+				} else {
+					populacaoFinal.add(aleatorio2);
+				}
 			}
 		}
 
@@ -316,9 +357,11 @@ public class AE {
 		int distanciaTotal = 0;
 		for (int i = 0; i < solucao.getSolucao().size(); i++) {
 			if (i == solucao.getSolucao().size() - 1) {
-				distanciaTotal += solucao.getSolucao().get(i).getDistancias().get(solucao.getSolucao().get(0).getRotulo() -1);
+				distanciaTotal += solucao.getSolucao().get(i).getDistancias()
+						.get(solucao.getSolucao().get(0).getRotulo() - 1);
 			} else {
-				distanciaTotal += solucao.getSolucao().get(i).getDistancias().get(solucao.getSolucao().get(i + 1).getRotulo() -1);
+				distanciaTotal += solucao.getSolucao().get(i).getDistancias()
+						.get(solucao.getSolucao().get(i + 1).getRotulo() - 1);
 			}
 		}
 		solucao.setFitness(distanciaTotal);
@@ -350,7 +393,7 @@ public class AE {
 			int aux = pontoAleatorio2;
 			pontoAleatorio1 = pontoAleatorio2;
 			pontoAleatorio2 = aux;
-		}else{
+		} else {
 			pontoAleatorio2 += 1;
 		}
 		int menorDistancia = -1;
