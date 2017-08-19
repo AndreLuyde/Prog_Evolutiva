@@ -8,6 +8,7 @@ public class AE {
 
 	private RouteProblem problema;
 	private ArrayList<RouteSolution> populacao = new ArrayList<RouteSolution>();
+	private ArrayList<Individuo> popIndividuos = new ArrayList<Individuo>();
 	private RouteSolution bestSolution;
 	private double crossProbability;
 	private double mutationProbability;
@@ -26,12 +27,23 @@ public class AE {
 		setAutoAdaptacao(autoAdaptacao);
 		setCompeticaoPaisFilhos(competicaoPaisFilhos);
 
-		// inicializa a populacao
-		for (int i = 0; i < populationSize; i++) {
-			ArrayList<Pontos> pontos = new ArrayList<Pontos>(problem.getPontos());
-			Collections.shuffle(pontos);
-			RouteSolution solucaoTemp = new RouteSolution(pontos);
-			getPopulacao().add(solucaoTemp);
+		if (autoAdaptacao) {
+			// inicializa a populacao
+			for (int i = 0; i < populationSize; i++) {
+				ArrayList<Pontos> pontos = new ArrayList<Pontos>(problem.getPontos());
+				Collections.shuffle(pontos);
+				RouteSolution solucaoTemp = new RouteSolution(pontos);
+				Individuo individuo = new Individuo(solucaoTemp, 0.8);
+				getPopIndividuos().add(individuo);
+			}
+		} else {
+			// inicializa a populacao
+			for (int i = 0; i < populationSize; i++) {
+				ArrayList<Pontos> pontos = new ArrayList<Pontos>(problem.getPontos());
+				Collections.shuffle(pontos);
+				RouteSolution solucaoTemp = new RouteSolution(pontos);
+				getPopulacao().add(solucaoTemp);
+			}
 		}
 	}
 
@@ -55,11 +67,16 @@ public class AE {
 		return melhorSolucao;
 	}
 
-	private void cicloEvolucionario(ArrayList<RouteSolution> populacao, long timeFimExecucao, long tempoInicial, boolean autoAdaptacao) {
+	private void cicloEvolucionario(ArrayList<RouteSolution> populacao, long timeFimExecucao, long tempoInicial,
+			boolean autoAdaptacao) {
 		ArrayList<ArrayList<Pontos>> filhos = new ArrayList<ArrayList<Pontos>>();
+		ArrayList<Individuo> popIndividuos = new ArrayList<Individuo>();
+		ArrayList<Individuo> filhosIndividuos = new ArrayList<Individuo>();
 		Double timeDouble = 0d;
 		RouteSolution pai1 = null;
 		RouteSolution pai2 = null;
+		Individuo paiInd1 = null;
+		Individuo paiInd2 = null;
 		RouteSolution filho = null;
 		// RouteSolution melhorSolucaoGeracao = null;
 		int indice1 = -1;
@@ -71,91 +88,241 @@ public class AE {
 		for (RouteSolution routeSolution : populacao) {
 			fitness(routeSolution);
 		}
-		
-		if(autoAdaptacao) {
-			ArrayList<Individuo> popIndividuos = new ArrayList<Individuo>();
+
+		if (autoAdaptacao) {
 			Individuo individuo;
 			for (RouteSolution routeSolution : populacao) {
 				individuo = new Individuo(routeSolution, 0.8);
 				popIndividuos.add(individuo);
 			}
+
+			do {
+				do {
+					// seleção de pontos para fazer seleção para cruzamento
+					indice1 = (int) (0 + Math.random() * popIndividuos.size());
+					indice2 = (int) (0 + Math.random() * popIndividuos.size());
+					indice3 = (int) (0 + Math.random() * popIndividuos.size());
+					indice4 = (int) (0 + Math.random() * popIndividuos.size());
+
+					// seleção de pais para cruzamento
+					pai1 = torneio(popIndividuos.get(indice1).getSolution(), popIndividuos.get(indice2).getSolution());
+					paiInd1 = new Individuo(pai1, 0.8);
+					pai2 = torneio(popIndividuos.get(indice3).getSolution(), popIndividuos.get(indice4).getSolution());
+					paiInd2 = new Individuo(pai2, 0.8);
+
+					// verifica probabilidade de cruzamento
+					if (((paiInd1.getSigma() + paiInd2.getSigma()) / 2) < getCrossProbability()) {
+						filhosIndividuos.addAll(paiInd1.crossing(paiInd1, paiInd2));
+					}
+
+					// verifica possibilidade de mutação
+					if (((paiInd1.getSigma() + paiInd2.getSigma()) / 2) < getMutationProbability()) {
+						paiInd1.mutacao(paiInd1);
+						filhosIndividuos.add(paiInd1);
+					}
+
+					// faz busca local em N indivíduos
+					buscaLocal(paiInd1);
+
+				} while (filhosIndividuos.size() < getTamanhoPopulacao() / 2);
+
+				// selecao para proxima geração
+				popIndividuos = selecaoIndividuos(popIndividuos, filhosIndividuos, getTamanhoPopulacao(), getProporcaoPaisFilhos(),
+						getCompeticaoPaisFilhos());
+				setPopIndividuos(popIndividuos);
+				setGeracaoAtual(getGeracaoAtual() + 1);
+
+				// guarda melhor solução da geração
+				// RouteSolution melhorSolucaoGeracao = null;
+				RouteSolution melhorSolucaoGeracao = new RouteSolution(getMelhorSolucaoIndividuos(popIndividuos));
+				if (getBestSolution() == null) {
+					setBestSolution(melhorSolucaoGeracao);
+					// mostra melhor solução da geração
+					System.out.println("Solução Da " + getGeracaoAtual() + " geração");
+					for (Pontos ponto : melhorSolucaoGeracao.getSolucao()) {
+						System.out.print("| " + ponto.getRotulo() + " ");
+					}
+					System.out.println("|");
+					System.out.println("Fitness: " + melhorSolucaoGeracao.getFitness());
+
+				} else if (melhorSolucaoGeracao.getFitness() < getBestSolution().getFitness()) {
+					setBestSolution(melhorSolucaoGeracao);
+					// mostra melhor solucao da geração
+					System.out.println("Solução Da " + getGeracaoAtual() + " geração");
+					for (Pontos ponto : melhorSolucaoGeracao.getSolucao()) {
+						System.out.print("| " + ponto.getRotulo() + " ");
+					}
+					System.out.println("|");
+					System.out.println("Fitness: " + melhorSolucaoGeracao.getFitness());
+				}
+
+				// atualiza criterio de parada
+				long actualTime = System.currentTimeMillis();
+				long time = (actualTime - tempoInicial);
+				timeDouble = Double.parseDouble((String.valueOf(time))) / 1000;
+
+			} while (timeFimExecucao > timeDouble);
+
+			System.out.println("Melhor Solução encontrada");
+			for (Pontos ponto : getBestSolution().getSolucao()) {
+				System.out.print("| " + ponto.getRotulo() + " ");
+			}
+			System.out.println("|");
+			System.out.println("Fitness: " + getBestSolution().getFitness());
+
+		} else {
+			do {
+				do {
+					// seleção de pontos para fazer seleção para cruzamento
+					indice1 = (int) (0 + Math.random() * populacao.size());
+					indice2 = (int) (0 + Math.random() * populacao.size());
+					indice3 = (int) (0 + Math.random() * populacao.size());
+					indice4 = (int) (0 + Math.random() * populacao.size());
+
+					// seleção de pais para cruzamento
+					pai1 = torneio(populacao.get(indice1), populacao.get(indice2));
+					pai2 = torneio(populacao.get(indice3), populacao.get(indice4));
+
+					// verifica probabilidade de cruzamento
+					if (r.nextGaussian() < getCrossProbability()) {
+						filhos = crossingRoute2Cut(pai1, pai2);
+						for (ArrayList<Pontos> arrayList : filhos) {
+							filho = new RouteSolution(arrayList);
+							populacao.add(filho);
+						}
+					}
+
+					// verifica possibilidade de mutação
+					if (r.nextGaussian() < getMutationProbability()) {
+						populacao.add(mutationRouteByChange(pai1));
+					}
+
+					// faz busca local em N indivíduos
+					Individuo teste = new Individuo(pai1, 0.5);
+					buscaLocal(teste);
+				} while (filhos.size() < getTamanhoPopulacao() / 2);
+
+				// selecao para proxima geração
+				populacao = selecao(populacao, populacao, getTamanhoPopulacao(), getProporcaoPaisFilhos(), getCompeticaoPaisFilhos());
+				setGeracaoAtual(getGeracaoAtual() + 1);
+
+				// guarda melhor solução da geração
+				// RouteSolution melhorSolucaoGeracao = null;
+				RouteSolution melhorSolucaoGeracao = new RouteSolution(getMelhorSolucao(populacao));
+				if (getBestSolution() == null) {
+					setBestSolution(melhorSolucaoGeracao);
+					// mostra melhor solução da geração
+					System.out.println("Solução Da " + getGeracaoAtual() + " geração");
+					for (Pontos ponto : melhorSolucaoGeracao.getSolucao()) {
+						System.out.print("| " + ponto.getRotulo() + " ");
+					}
+					System.out.println("|");
+					System.out.println("Fitness: " + melhorSolucaoGeracao.getFitness());
+
+				} else if (melhorSolucaoGeracao.getFitness() < getBestSolution().getFitness()) {
+					setBestSolution(melhorSolucaoGeracao);
+					// mostra melhor solucao da geração
+					System.out.println("Solução Da " + getGeracaoAtual() + " geração");
+					for (Pontos ponto : melhorSolucaoGeracao.getSolucao()) {
+						System.out.print("| " + ponto.getRotulo() + " ");
+					}
+					System.out.println("|");
+					System.out.println("Fitness: " + melhorSolucaoGeracao.getFitness());
+				}
+
+				// atualiza criterio de parada
+				long actualTime = System.currentTimeMillis();
+				long time = (actualTime - tempoInicial);
+				timeDouble = Double.parseDouble((String.valueOf(time))) / 1000;
+
+			} while (timeFimExecucao > timeDouble);
+
+			System.out.println("Melhor Solução encontrada");
+			for (Pontos ponto : getBestSolution().getSolucao()) {
+				System.out.print("| " + ponto.getRotulo() + " ");
+			}
+			System.out.println("|");
+			System.out.println("Fitness: " + getBestSolution().getFitness());
 		}
-		
-		
-		do {
-			// seleção de pontos para fazer seleção para cruzamento
-			indice1 = (int) (0 + Math.random() * populacao.size());
-			indice2 = (int) (0 + Math.random() * populacao.size());
-			indice3 = (int) (0 + Math.random() * populacao.size());
-			indice4 = (int) (0 + Math.random() * populacao.size());
 
-			// seleção de pais para cruzamento
-			pai1 = torneio(populacao.get(indice1), populacao.get(indice2));
-			pai2 = torneio(populacao.get(indice3), populacao.get(indice4));
+	}
 
-			// verifica probabilidade de cruzamento
-			if (r.nextGaussian() < getCrossProbability()) {
-				filhos = crossingRoute2Cut(pai1, pai2);
-				for (ArrayList<Pontos> arrayList : filhos) {
-					filho = new RouteSolution(arrayList);
-					populacao.add(filho);
+	private RouteSolution getMelhorSolucaoIndividuos(ArrayList<Individuo> popIndividuos) {
+		RouteSolution melhorSolucao = null;
+		for (Individuo individuo : popIndividuos) {
+			fitness(individuo.getSolution());
+			if (melhorSolucao != null) {
+				if (individuo.getSolution().getFitness() < melhorSolucao.getFitness()) {
+					melhorSolucao = individuo.getSolution();
 				}
+			} else {
+				melhorSolucao = individuo.getSolution();
 			}
-
-			// verifica possibilidade de mutação
-			if (r.nextGaussian() < getMutationProbability()) {
-				populacao.add(mutationRouteByChange(pai1));
-			}
-
-			// faz busca local em N indivíduos
-			Individuo teste = new Individuo(pai1, 0.5);
-			buscaLocal(teste);
-
-			// selecao para proxima geração
-			populacao = selecao(populacao, populacao, 100, getProporcaoPaisFilhos(), getCompeticaoPaisFilhos());
-			setGeracaoAtual(getGeracaoAtual() + 1);
-
-			// guarda melhor solução da geração
-			// RouteSolution melhorSolucaoGeracao = null;
-			RouteSolution melhorSolucaoGeracao = new RouteSolution(getMelhorSolucao(populacao));
-			if (getBestSolution() == null) {
-				setBestSolution(melhorSolucaoGeracao);
-				// mostra melhor solução da geração
-				System.out.println("Solução Da " + getGeracaoAtual() + " geração");
-				for (Pontos ponto : melhorSolucaoGeracao.getSolucao()) {
-					System.out.print("| " + ponto.getRotulo() + " ");
-				}
-				System.out.println("|");
-				System.out.println("Fitness: " + melhorSolucaoGeracao.getFitness());
-
-			} else if (melhorSolucaoGeracao.getFitness() < getBestSolution().getFitness()) {
-				setBestSolution(melhorSolucaoGeracao);
-				// mostra melhor solucao da geração
-				System.out.println("Solução Da " + getGeracaoAtual() + " geração");
-				for (Pontos ponto : melhorSolucaoGeracao.getSolucao()) {
-					System.out.print("| " + ponto.getRotulo() + " ");
-				}
-				System.out.println("|");
-				System.out.println("Fitness: " + melhorSolucaoGeracao.getFitness());
-			}
-
-			// atualiza criterio de parada
-			long actualTime = System.currentTimeMillis();
-			long time = (actualTime - tempoInicial);
-			timeDouble = Double.parseDouble((String.valueOf(time))) / 1000;
-
-		} while (timeFimExecucao > timeDouble);
-
-		System.out.println("Melhor Solução encontrada");
-		for (Pontos ponto : getBestSolution().getSolucao()) {
-			System.out.print("| " + ponto.getRotulo() + " ");
 		}
-		System.out.println("|");
-		System.out.println("Fitness: " + getBestSolution().getFitness());
-		// int indice =
+		setBestSolution(melhorSolucao);
+		return melhorSolucao;
+	}
 
-		// cruzamento
-		// crossingRoute2Cut(populacao.get(indice1), populacao.get(indice2));
+	private ArrayList<Individuo> selecaoIndividuos(ArrayList<Individuo> popIndividuos,
+			ArrayList<Individuo> popIndividuosFilhos, int tamanhoPopulacao, Double proporcaoPaisFilhos,
+			Boolean competicaoPaisFilhos) {
+
+		Individuo aleatorio1 = null;
+		Individuo aleatorio2 = null;
+		ArrayList<Individuo> populacaoFinal = new ArrayList<Individuo>();
+
+		if (competicaoPaisFilhos) {
+			for (Individuo individuoAdd : popIndividuosFilhos) {
+				popIndividuos.add(individuoAdd);
+			}
+
+			for (int i = 0; i < tamanhoPopulacao * proporcaoPaisFilhos; i++) {
+				int n = (int) (0 + Math.random() * popIndividuos.size());
+				aleatorio1 = popIndividuos.get(n);
+
+				n = (int) (0 + Math.random() * popIndividuos.size());
+				aleatorio2 = popIndividuos.get(n);
+
+				if (fitness(aleatorio1.getSolution()) < fitness(aleatorio2.getSolution())) {
+					populacaoFinal.add(aleatorio1);
+				} else {
+					populacaoFinal.add(aleatorio2);
+				}
+			}
+		} else {
+			// pais
+			for (int i = 0; i < tamanhoPopulacao * proporcaoPaisFilhos; i++) {
+				int n = (int) (0 + Math.random() * popIndividuos.size());
+				aleatorio1 = popIndividuos.get(n);
+
+				n = (int) (0 + Math.random() * popIndividuos.size());
+				aleatorio2 = popIndividuos.get(n);
+
+				if (fitness(aleatorio1.getSolution()) < fitness(aleatorio2.getSolution())) {
+					populacaoFinal.add(aleatorio1);
+				} else {
+					populacaoFinal.add(aleatorio2);
+				}
+			}
+
+			// filhos
+			while (populacaoFinal.size() <= tamanhoPopulacao) {
+				int n = (int) (0 + Math.random() * popIndividuosFilhos.size());
+				aleatorio1 = popIndividuosFilhos.get(n);
+
+				n = (int) (0 + Math.random() * popIndividuosFilhos.size());
+				aleatorio2 = popIndividuosFilhos.get(n);
+
+				if (fitness(aleatorio1.getSolution()) < fitness(aleatorio2.getSolution())) {
+					populacaoFinal.add(aleatorio1);
+				} else {
+					populacaoFinal.add(aleatorio2);
+				}
+			}
+		}
+
+		return populacaoFinal;
+
 	}
 
 	// Cruzamento de rota
@@ -502,5 +669,13 @@ public class AE {
 
 	public void setAutoAdaptacao(Boolean autoAdaptacao) {
 		this.autoAdaptacao = autoAdaptacao;
+	}
+
+	public ArrayList<Individuo> getPopIndividuos() {
+		return popIndividuos;
+	}
+
+	public void setPopIndividuos(ArrayList<Individuo> popIndividuos) {
+		this.popIndividuos = popIndividuos;
 	}
 }
