@@ -14,7 +14,7 @@ public class Individuo {
 
 	public Individuo(RouteSolution solucao, Double sigma) {
 		setSigma(sigma);
-		Double tau = (double) (1 / ((solucao.getSolucao().size()) ^ (1 / 2)));
+		Double tau = (double) (1 / (Math.pow(solucao.getSolucao().size(), 0.5))); 
 		setTau(tau);
 		setSolution(solucao);
 	}

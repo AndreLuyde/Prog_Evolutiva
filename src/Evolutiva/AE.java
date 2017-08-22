@@ -21,29 +21,21 @@ public class AE {
 	private Boolean autoAdaptacao;
 	Random r = new Random();
 
-	public AE(RouteProblem problem, int populationSize, Boolean autoAdaptacao, Boolean competicaoPaisFilhos) {
+	public AE(RouteProblem problem, int populationSize, Boolean autoAdaptacao, Boolean competicaoPaisFilhos, double proporcaoPaisFilhos) {
+		setMutationProbability(1 / problem.getNumClients());
+		setCrossProbability(0.9);
 		setProblema(problem);
 		setTamanhoPopulacao(populationSize);
 		setAutoAdaptacao(autoAdaptacao);
 		setCompeticaoPaisFilhos(competicaoPaisFilhos);
+		setProporcaoPaisFilhos(proporcaoPaisFilhos);
 
-		if (autoAdaptacao) {
-			// inicializa a populacao
-			for (int i = 0; i < populationSize; i++) {
-				ArrayList<Pontos> pontos = new ArrayList<Pontos>(problem.getPontos());
-				Collections.shuffle(pontos);
-				RouteSolution solucaoTemp = new RouteSolution(pontos);
-				Individuo individuo = new Individuo(solucaoTemp, 0.8);
-				getPopIndividuos().add(individuo);
-			}
-		} else {
-			// inicializa a populacao
-			for (int i = 0; i < populationSize; i++) {
-				ArrayList<Pontos> pontos = new ArrayList<Pontos>(problem.getPontos());
-				Collections.shuffle(pontos);
-				RouteSolution solucaoTemp = new RouteSolution(pontos);
-				getPopulacao().add(solucaoTemp);
-			}
+		// inicializa a populacao
+		for (int i = 0; i < populationSize; i++) {
+			ArrayList<Pontos> pontos = new ArrayList<Pontos>(problem.getPontos());
+			Collections.shuffle(pontos);
+			RouteSolution solucaoTemp = new RouteSolution(pontos);
+			getPopulacao().add(solucaoTemp);
 		}
 	}
 
@@ -67,8 +59,7 @@ public class AE {
 		return melhorSolucao;
 	}
 
-	private void cicloEvolucionario(ArrayList<RouteSolution> populacao, long timeFimExecucao, long tempoInicial,
-			boolean autoAdaptacao) {
+	private void cicloEvolucionario(ArrayList<RouteSolution> populacao, long timeFimExecucao, long tempoInicial, boolean autoAdaptacao) {
 		ArrayList<ArrayList<Pontos>> filhos = new ArrayList<ArrayList<Pontos>>();
 		ArrayList<Individuo> popIndividuos = new ArrayList<Individuo>();
 		ArrayList<Individuo> filhosIndividuos = new ArrayList<Individuo>();
@@ -78,7 +69,6 @@ public class AE {
 		Individuo paiInd1 = null;
 		Individuo paiInd2 = null;
 		RouteSolution filho = null;
-		// RouteSolution melhorSolucaoGeracao = null;
 		int indice1 = -1;
 		int indice2 = -1;
 		int indice3 = -1;
@@ -121,7 +111,7 @@ public class AE {
 						filhosIndividuos.add(paiInd1);
 					}
 
-					// faz busca local em N indivíduos
+//					 faz busca local em N indivíduos
 					buscaLocal(paiInd1);
 
 				} while (filhosIndividuos.size() < getTamanhoPopulacao() / 2);
@@ -543,7 +533,7 @@ public class AE {
 		while (iteracoes < 100) {
 			RouteSolution novaSolucao = new RouteSolution(geraNovoVizinho(individuo.getSolution()));
 			fitness(novaSolucao);
-			if (melhorSolucao.getFitness() < novaSolucao.getFitness()) {
+			if (melhorSolucao.getFitness() > novaSolucao.getFitness()) {
 				melhorSolucao = new RouteSolution(novaSolucao);
 			}
 			iteracoes++;
@@ -555,40 +545,102 @@ public class AE {
 		int pontoAleatorio1 = r.nextInt((solution.getSolucao().size()) - 1);
 		int pontoAleatorio2 = r.nextInt((solution.getSolucao().size()) - 1);
 		ArrayList<Pontos> pontosModificados = new ArrayList<Pontos>();
+		ArrayList<Integer> indices = new ArrayList<Integer>();
 
 		if (pontoAleatorio2 < pontoAleatorio1) {
 			int aux = pontoAleatorio2;
-			pontoAleatorio1 = pontoAleatorio2;
-			pontoAleatorio2 = aux;
-		} else {
-			pontoAleatorio2 += 1;
+			pontoAleatorio2 = pontoAleatorio1;
+			pontoAleatorio1 = aux;
+		} else if (pontoAleatorio2 == pontoAleatorio1){
+			return solution;
 		}
 		int menorDistancia = -1;
 		pontosModificados.add(solution.getSolucao().get(pontoAleatorio1));
+		indices.add(pontoAleatorio1);
 		for (int i = pontoAleatorio1 + 1; i < pontoAleatorio2; i++) {
-			menorDistancia = getVizinhoMaisProximo(solution.getSolucao().get(pontoAleatorio1).getDistancias());
+			menorDistancia = getVizinhoMaisProximo(solution.getSolucao().get(i).getDistancias(), indices, pontoAleatorio1, pontoAleatorio2);
 			if (menorDistancia != -1) {
 				pontosModificados.add(solution.getSolucao().get(menorDistancia));
+				indices.add(menorDistancia);
 				menorDistancia = -1;
 			}
 		}
-		for (int i = pontoAleatorio1; i < pontoAleatorio2; i++) {
-			solution.getSolucao().set(i, pontosModificados.get(i));
+		int j =0;
+		if(pontoAleatorio2 - pontoAleatorio1 == pontosModificados.size()) {
+			for (int i = pontoAleatorio1; i < pontoAleatorio2; i++) {
+				solution.getSolucao().set(i, pontosModificados.get(j));
+				j++;
+			}
+			return solution;
+		}else {
+			return solution;
 		}
-		return solution;
 	}
 
-	private int getVizinhoMaisProximo(ArrayList<Double> distancias) {
-		double menor = distancias.get(0);
-		int indiceMenor = 0;
-		for (int i = 1; i < distancias.size(); i++) {
-			if (distancias.get(i) < menor) {
-				menor = distancias.get(i);
+	private int getVizinhoMaisProximo(ArrayList<Double> distancias, ArrayList<Integer> indices, int rand1, int rand2) {
+		ArrayList<Double> dist = new ArrayList<Double>(distancias);
+		for (int i = 0; i < rand1; i++) {
+			dist.set(i, -1d);
+		}
+		for (int i = rand2; i < dist.size(); i++) {
+			dist.set(i, -1d);
+		}
+			
+		double menor = -1;
+		int indiceMenor = -1;
+		for(int j=0; j < indices.size(); j++) {
+			dist.set(indices.get(j), -1d);
+		}
+		for (int i = 0; i < dist.size(); i++) {
+			if(menor < 0 && dist.get(i) > 0) {
+				menor = dist.get(i);
+				indiceMenor = i;
+			}else if (dist.get(i) < menor && dist.get(i) > 0) {
+				menor = dist.get(i);
 				indiceMenor = i;
 			}
 		}
 		return indiceMenor;
 	}
+	
+	public ArrayList<RouteSolution> roleta(ArrayList<RouteSolution> populacao, ArrayList<RouteSolution> novasSulucoes,
+			int tamanhoPopulacao, double proporcaoPaiFilhos, boolean competicaoPaisFilhos) {
+		
+		ArrayList<RouteSolution> populacaoFinal = new ArrayList<RouteSolution>();
+		ArrayList<RouteSolution> populacaoTotal = new ArrayList<RouteSolution>(populacao);
+		int somaFitness = 0;
+		int somaFitness2 = 0;
+		int aleatorio = -1;
+		for(int i=0; i < populacao.size(); i++) {
+			somaFitness += populacao.get(i).getFitness();
+		}
+		for(int i=0; i < novasSulucoes.size(); i++) {
+			somaFitness += novasSulucoes.get(i).getFitness();
+		}
+		
+		if(competicaoPaisFilhos) {
+			for(int i=0; i < novasSulucoes.size(); i++) {
+				populacaoTotal.add(novasSulucoes.get(i));
+			}
+			
+			for(int i=0; i< tamanhoPopulacao; i++){
+				aleatorio = r.nextInt(somaFitness+1);
+				for(int j=0; j< populacaoFinal.size();j++) {
+					somaFitness2 += (int) populacaoTotal.get(j).getFitness();
+					if(somaFitness2 >= aleatorio){
+						populacaoFinal.add(populacaoTotal.get(j));
+						somaFitness2 = 0;
+						break;
+					}
+				}
+			}
+		}else {
+			for(int i=0; i< tamanhoPopulacao; i++){
+			}
+		}
+		return populacaoFinal;
+	}
+	
 
 	// -----Get and Set
 	public RouteProblem getProblema() {

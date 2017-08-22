@@ -65,12 +65,12 @@ public class Principal {
 
 		// execução GA
 		long tempoInicial = System.currentTimeMillis();
-		GA ga = new GA(problema, 100);
 		long tempoFinal = Long.parseLong(seconds);
-		ga.run(tempoFinal, tempoInicial);
+//		GA ga = new GA(problema, 100);
+//		ga.run(tempoFinal, tempoInicial);
 
 		//execução AE
-		AE ae = new AE(problema, 50, true, true);
+		AE ae = new AE(problema, 50, true, true, 0.2);
 		ae.run(tempoFinal, tempoInicial);
 		
 		long timeEnd = System.currentTimeMillis();
