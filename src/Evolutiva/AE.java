@@ -21,7 +21,8 @@ public class AE {
 	private Boolean autoAdaptacao;
 	Random r = new Random();
 
-	public AE(RouteProblem problem, int populationSize, Boolean autoAdaptacao, Boolean competicaoPaisFilhos, double proporcaoPaisFilhos) {
+	public AE(RouteProblem problem, int populationSize, Boolean autoAdaptacao, Boolean competicaoPaisFilhos,
+			double proporcaoPaisFilhos) {
 		setMutationProbability(1 / problem.getNumClients());
 		setCrossProbability(0.9);
 		setProblema(problem);
@@ -37,6 +38,38 @@ public class AE {
 			RouteSolution solucaoTemp = new RouteSolution(pontos);
 			getPopulacao().add(solucaoTemp);
 		}
+	}
+
+	public void ilhas(ArrayList<ArrayList<RouteSolution>> ilhas, long timeFimExecucao, long tempoInicial) {
+		ArrayList<RouteSolution> melhoresSolutions = new ArrayList<RouteSolution>(); 
+		RouteSolution best;
+		int tempo = 0;
+		double timeDouble = 0;
+		do {
+			for (int i = 0; i < ilhas.size(); i++) {
+				cicloEvolucionario(ilhas.get(i), timeFimExecucao, tempoInicial, false);
+				best = getMelhorSolucao(ilhas.get(i));
+				if(melhoresSolutions.get(i).equals(null)) {
+					melhoresSolutions.set(i, best);
+				}else {
+					if(fitness(melhoresSolutions.get(i)) > fitness(best)) {
+						melhoresSolutions.set(i, best);
+					}
+				}
+			}
+			tempo++;
+			
+			if(tempo == 5) {
+				for (int i = 0; i < ilhas.size(); i++) {
+					ilhas.get(i).add(melhoresSolutions.get(i));
+				}
+				tempo = 0;
+			}
+			
+			long actualTime = System.currentTimeMillis();
+			long time = (actualTime - tempoInicial);
+			timeDouble = Double.parseDouble((String.valueOf(time))) / 1000;
+		} while (timeFimExecucao > timeDouble);
 	}
 
 	public void run(long timeFimExecucao, long tempoInicial) {
@@ -59,8 +92,10 @@ public class AE {
 		return melhorSolucao;
 	}
 
-	private void cicloEvolucionario(ArrayList<RouteSolution> populacao, long timeFimExecucao, long tempoInicial, boolean autoAdaptacao) {
+	private void cicloEvolucionario(ArrayList<RouteSolution> populacao, long timeFimExecucao, long tempoInicial,
+			boolean autoAdaptacao) {
 		ArrayList<ArrayList<Pontos>> filhos = new ArrayList<ArrayList<Pontos>>();
+		ArrayList<RouteSolution> populacaoFilhos = new ArrayList<RouteSolution>();
 		ArrayList<Individuo> popIndividuos = new ArrayList<Individuo>();
 		ArrayList<Individuo> filhosIndividuos = new ArrayList<Individuo>();
 		Double timeDouble = 0d;
@@ -111,19 +146,23 @@ public class AE {
 						filhosIndividuos.add(paiInd1);
 					}
 
-//					 faz busca local em N indivíduos
+					// faz busca local em N indivíduos
 					buscaLocal(paiInd1);
 
 				} while (filhosIndividuos.size() < getTamanhoPopulacao() / 2);
 
-				// selecao para proxima geração
-				popIndividuos = selecaoIndividuos(popIndividuos, filhosIndividuos, getTamanhoPopulacao(), getProporcaoPaisFilhos(),
-						getCompeticaoPaisFilhos());
+				// selecao para proxima geração //estratégia de seleção
+				if (getProporcaoPaisFilhos() > 0.5 || getCompeticaoPaisFilhos()) {
+					popIndividuos = selecaoIndividuos(popIndividuos, filhosIndividuos, getTamanhoPopulacao(),
+							getProporcaoPaisFilhos(), getCompeticaoPaisFilhos());
+				} else {
+					popIndividuos = roletaIndividuos(popIndividuos, filhosIndividuos, getTamanhoPopulacao(),
+							getProporcaoPaisFilhos(), getCompeticaoPaisFilhos());
+				}
 				setPopIndividuos(popIndividuos);
 				setGeracaoAtual(getGeracaoAtual() + 1);
 
 				// guarda melhor solução da geração
-				// RouteSolution melhorSolucaoGeracao = null;
 				RouteSolution melhorSolucaoGeracao = new RouteSolution(getMelhorSolucaoIndividuos(popIndividuos));
 				if (getBestSolution() == null) {
 					setBestSolution(melhorSolucaoGeracao);
@@ -178,26 +217,32 @@ public class AE {
 						filhos = crossingRoute2Cut(pai1, pai2);
 						for (ArrayList<Pontos> arrayList : filhos) {
 							filho = new RouteSolution(arrayList);
-							populacao.add(filho);
+							populacaoFilhos.add(filho);
 						}
 					}
 
 					// verifica possibilidade de mutação
 					if (r.nextGaussian() < getMutationProbability()) {
-						populacao.add(mutationRouteByChange(pai1));
+						populacaoFilhos.add(mutationRouteByChange(pai1));
 					}
 
 					// faz busca local em N indivíduos
 					Individuo teste = new Individuo(pai1, 0.5);
 					buscaLocal(teste);
-				} while (filhos.size() < getTamanhoPopulacao() / 2);
+				} while (populacaoFilhos.size() < getTamanhoPopulacao() / 2);
 
-				// selecao para proxima geração
-				populacao = selecao(populacao, populacao, getTamanhoPopulacao(), getProporcaoPaisFilhos(), getCompeticaoPaisFilhos());
+				// selecao para proxima geração //estratégia de seleção
+				if (getProporcaoPaisFilhos() > 0.5 || getCompeticaoPaisFilhos()) {
+					populacao = selecao(populacao, populacaoFilhos, getTamanhoPopulacao(), getProporcaoPaisFilhos(),
+							getCompeticaoPaisFilhos());
+				} else {
+					populacao = roleta(populacao, populacaoFilhos, getTamanhoPopulacao(), getProporcaoPaisFilhos(),
+							getCompeticaoPaisFilhos());
+				}
+				setPopulacao(populacao);
 				setGeracaoAtual(getGeracaoAtual() + 1);
 
 				// guarda melhor solução da geração
-				// RouteSolution melhorSolucaoGeracao = null;
 				RouteSolution melhorSolucaoGeracao = new RouteSolution(getMelhorSolucao(populacao));
 				if (getBestSolution() == null) {
 					setBestSolution(melhorSolucaoGeracao);
@@ -551,28 +596,29 @@ public class AE {
 			int aux = pontoAleatorio2;
 			pontoAleatorio2 = pontoAleatorio1;
 			pontoAleatorio1 = aux;
-		} else if (pontoAleatorio2 == pontoAleatorio1){
+		} else if (pontoAleatorio2 == pontoAleatorio1) {
 			return solution;
 		}
 		int menorDistancia = -1;
 		pontosModificados.add(solution.getSolucao().get(pontoAleatorio1));
 		indices.add(pontoAleatorio1);
 		for (int i = pontoAleatorio1 + 1; i < pontoAleatorio2; i++) {
-			menorDistancia = getVizinhoMaisProximo(solution.getSolucao().get(i).getDistancias(), indices, pontoAleatorio1, pontoAleatorio2);
+			menorDistancia = getVizinhoMaisProximo(solution.getSolucao().get(i).getDistancias(), indices,
+					pontoAleatorio1, pontoAleatorio2);
 			if (menorDistancia != -1) {
 				pontosModificados.add(solution.getSolucao().get(menorDistancia));
 				indices.add(menorDistancia);
 				menorDistancia = -1;
 			}
 		}
-		int j =0;
-		if(pontoAleatorio2 - pontoAleatorio1 == pontosModificados.size()) {
+		int j = 0;
+		if (pontoAleatorio2 - pontoAleatorio1 == pontosModificados.size()) {
 			for (int i = pontoAleatorio1; i < pontoAleatorio2; i++) {
 				solution.getSolucao().set(i, pontosModificados.get(j));
 				j++;
 			}
 			return solution;
-		}else {
+		} else {
 			return solution;
 		}
 	}
@@ -585,62 +631,158 @@ public class AE {
 		for (int i = rand2; i < dist.size(); i++) {
 			dist.set(i, -1d);
 		}
-			
+
 		double menor = -1;
 		int indiceMenor = -1;
-		for(int j=0; j < indices.size(); j++) {
+		for (int j = 0; j < indices.size(); j++) {
 			dist.set(indices.get(j), -1d);
 		}
 		for (int i = 0; i < dist.size(); i++) {
-			if(menor < 0 && dist.get(i) > 0) {
+			if (menor < 0 && dist.get(i) > 0) {
 				menor = dist.get(i);
 				indiceMenor = i;
-			}else if (dist.get(i) < menor && dist.get(i) > 0) {
+			} else if (dist.get(i) < menor && dist.get(i) > 0) {
 				menor = dist.get(i);
 				indiceMenor = i;
 			}
 		}
 		return indiceMenor;
 	}
-	
+
 	public ArrayList<RouteSolution> roleta(ArrayList<RouteSolution> populacao, ArrayList<RouteSolution> novasSulucoes,
-			int tamanhoPopulacao, double proporcaoPaiFilhos, boolean competicaoPaisFilhos) {
-		
+			int tamanhoPopulacao, double proporcaoPaisFilhos, boolean competicaoPaisFilhos) {
+
 		ArrayList<RouteSolution> populacaoFinal = new ArrayList<RouteSolution>();
 		ArrayList<RouteSolution> populacaoTotal = new ArrayList<RouteSolution>(populacao);
 		int somaFitness = 0;
+		int somaFitnessPais = 0;
+		int somaFitnessFilhos = 0;
 		int somaFitness2 = 0;
 		int aleatorio = -1;
-		for(int i=0; i < populacao.size(); i++) {
-			somaFitness += populacao.get(i).getFitness();
+
+		// calcula o fitness dos filhos
+		for (int i = 0; i < novasSulucoes.size(); i++) {
+			fitness(novasSulucoes.get(i));
 		}
-		for(int i=0; i < novasSulucoes.size(); i++) {
-			somaFitness += novasSulucoes.get(i).getFitness();
+
+		for (int i = 0; i < populacao.size(); i++) {
+			somaFitnessPais += populacao.get(i).getFitness();
 		}
-		
-		if(competicaoPaisFilhos) {
-			for(int i=0; i < novasSulucoes.size(); i++) {
+		for (int i = 0; i < novasSulucoes.size(); i++) {
+			somaFitnessFilhos += novasSulucoes.get(i).getFitness();
+		}
+		somaFitness = somaFitnessPais + somaFitnessFilhos;
+		if (competicaoPaisFilhos) {
+			for (int i = 0; i < novasSulucoes.size(); i++) {
 				populacaoTotal.add(novasSulucoes.get(i));
 			}
-			
-			for(int i=0; i< tamanhoPopulacao; i++){
-				aleatorio = r.nextInt(somaFitness+1);
-				for(int j=0; j< populacaoFinal.size();j++) {
+
+			for (int i = 0; i < tamanhoPopulacao; i++) {
+				aleatorio = r.nextInt(somaFitness + 1);
+				for (int j = 0; j < populacaoTotal.size(); j++) {
 					somaFitness2 += (int) populacaoTotal.get(j).getFitness();
-					if(somaFitness2 >= aleatorio){
+					if (somaFitness2 >= aleatorio) {
 						populacaoFinal.add(populacaoTotal.get(j));
 						somaFitness2 = 0;
 						break;
 					}
 				}
 			}
-		}else {
-			for(int i=0; i< tamanhoPopulacao; i++){
+		} else {
+			// pais
+			for (int i = 0; i < tamanhoPopulacao * proporcaoPaisFilhos; i++) {
+				aleatorio = r.nextInt(somaFitnessPais + 1);
+				for (int j = 0; j < populacaoFinal.size(); j++) {
+					somaFitness2 += (int) populacao.get(j).getFitness();
+					if (somaFitness2 >= aleatorio) {
+						populacaoFinal.add(populacao.get(j));
+						somaFitness2 = 0;
+						break;
+					}
+				}
+			}
+			// filhos
+			while (populacaoFinal.size() <= tamanhoPopulacao) {
+				aleatorio = r.nextInt(somaFitnessFilhos + 1);
+				for (int j = 0; j < populacaoFinal.size(); j++) {
+					somaFitness2 += (int) novasSulucoes.get(j).getFitness();
+					if (somaFitness2 >= aleatorio) {
+						populacaoFinal.add(novasSulucoes.get(j));
+						somaFitness2 = 0;
+						break;
+					}
+				}
 			}
 		}
 		return populacaoFinal;
 	}
-	
+
+	private ArrayList<Individuo> roletaIndividuos(ArrayList<Individuo> popIndividuos,
+			ArrayList<Individuo> popIndividuosFilhos, int tamanhoPopulacao, Double proporcaoPaisFilhos,
+			Boolean competicaoPaisFilhos) {
+		ArrayList<Individuo> populacaoFinal = new ArrayList<Individuo>();
+		ArrayList<Individuo> populacaoTotal = new ArrayList<Individuo>(popIndividuos);
+		int somaFitness = 0;
+		int somaFitnessPais = 0;
+		int somaFitnessFilhos = 0;
+		int somaFitness2 = 0;
+		int aleatorio = -1;
+		// calcula o fitness dos filhos
+		for (int i = 0; i < popIndividuosFilhos.size(); i++) {
+			fitness(popIndividuosFilhos.get(i).getSolution());
+		}
+
+		for (int i = 0; i < popIndividuos.size(); i++) {
+			somaFitnessPais += popIndividuos.get(i).getSolution().getFitness();
+		}
+		for (int i = 0; i < popIndividuosFilhos.size(); i++) {
+			somaFitnessFilhos += popIndividuosFilhos.get(i).getSolution().getFitness();
+		}
+		somaFitness = somaFitnessPais + somaFitnessFilhos;
+		if (competicaoPaisFilhos) {
+			for (int i = 0; i < popIndividuosFilhos.size(); i++) {
+				populacaoTotal.add(popIndividuosFilhos.get(i));
+			}
+
+			for (int i = 0; i < tamanhoPopulacao; i++) {
+				aleatorio = r.nextInt(somaFitness + 1);
+				for (int j = 0; j < populacaoTotal.size(); j++) {
+					somaFitness2 += (int) populacaoTotal.get(j).getSolution().getFitness();
+					if (somaFitness2 >= aleatorio) {
+						populacaoFinal.add(populacaoTotal.get(j));
+						somaFitness2 = 0;
+						break;
+					}
+				}
+			}
+		} else {
+			// pais
+			for (int i = 0; i < tamanhoPopulacao * proporcaoPaisFilhos; i++) {
+				aleatorio = r.nextInt(somaFitnessPais + 1);
+				for (int j = 0; j < populacaoFinal.size(); j++) {
+					somaFitness2 += (int) popIndividuos.get(j).getSolution().getFitness();
+					if (somaFitness2 >= aleatorio) {
+						populacaoFinal.add(popIndividuos.get(j));
+						somaFitness2 = 0;
+						break;
+					}
+				}
+			}
+			// filhos
+			while (populacaoFinal.size() <= tamanhoPopulacao) {
+				aleatorio = r.nextInt(somaFitnessFilhos + 1);
+				for (int j = 0; j < populacaoFinal.size(); j++) {
+					somaFitness2 += (int) popIndividuosFilhos.get(j).getSolution().getFitness();
+					if (somaFitness2 >= aleatorio) {
+						populacaoFinal.add(popIndividuosFilhos.get(j));
+						somaFitness2 = 0;
+						break;
+					}
+				}
+			}
+		}
+		return populacaoFinal;
+	}
 
 	// -----Get and Set
 	public RouteProblem getProblema() {
