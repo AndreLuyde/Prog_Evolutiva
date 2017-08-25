@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Random;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -13,6 +14,34 @@ public class Principal {
 	private static BufferedReader readArq;
 
 	public static void main(String[] args) throws IOException {
+		Random r = new Random();
+		
+//		---------------------Experimentos GA------------------------
+		Experimentos exp = new Experimentos();
+		ArrayList<Integer> prob = new ArrayList<Integer>();
+		prob.add(30);
+		prob.add(35);
+		prob.add(40);
+		prob.add(50);
+		prob.add(80);
+		prob.add(100);
+		ArrayList<Integer>  populacoes = new ArrayList<Integer>();
+		populacoes.add(20);
+		populacoes.add(40);
+		populacoes.add(50);
+		populacoes.add(70);
+		populacoes.add(80);
+		populacoes.add(100);
+		ArrayList<Long> tempos = new ArrayList<Long>();
+		tempos.add(30l);
+		tempos.add(60l);
+		tempos.add(90l);
+		tempos.add(120l);
+		tempos.add(150l);
+		tempos.add(180l);
+		exp.run(prob, populacoes, tempos);
+		
+//		-----------------------------------------------------------------------
 		ArrayList<Pontos> pontos = new ArrayList<Pontos>();
 
 		// leitura arquivo com rotas

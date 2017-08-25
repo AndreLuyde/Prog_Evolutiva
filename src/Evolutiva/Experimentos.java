@@ -14,41 +14,43 @@ public class Experimentos {
 
 	}
 
-	public void run(Integer[] problemas, Integer[] populacoes, long tempos[]) {
-		for (int i = 0; i < 5 * problemas.length; i++) {
-			int aleatorio = r.nextInt((problemas.length - 2) + 1);
-			funcaoTeste(problemas[aleatorio], populacoes[aleatorio], tempos[aleatorio]);
+	public void run(ArrayList<Integer> problemas, ArrayList<Integer> populacoes, ArrayList<Long> tempos) {
+		for (int i = 0; i < 5 * problemas.size(); i++) {
+			int aleatorio = r.nextInt(problemas.size());
+			int aleatorio2 = r.nextInt(populacoes.size());
+			int aleatorio3 = r.nextInt(populacoes.size());
+			funcaoTeste(problemas.get(aleatorio), populacoes.get(aleatorio2), tempos.get(aleatorio3));
 		}
 	}
 
 	public void funcaoTeste(int prob, int populacao, long tempo) {
 		String arquivo = "";
-		if (prob > 0 && prob <= 30) {
-			arquivo = "TSP30.txt";
-		} else if (prob > 30 && prob <= 35) {
-			arquivo = "TSP35.txt";
-		} else if (prob > 35 && prob <= 40) {
-			arquivo = "TSP40.txt";
-		} else if (prob > 40 && prob <= 50) {
-			arquivo = "TSP50.txt";
-		} else if (prob > 50 && prob <= 80) {
-			arquivo = "TSP80.txt";
-		} else if (prob > 80 && prob <= 100) {
-			arquivo = "TSP100.txt";
+		if (prob == 30) {
+			arquivo = "/home/andre/git/Prog_Evolutiva/src/Evolutiva/TSP30.txt";
+		} else if (prob == 35) {
+			arquivo = "/home/andre/git/Prog_Evolutiva/src/Evolutiva/TSP35.txt";
+		} else if (prob == 40) {
+			arquivo = "/home/andre/git/Prog_Evolutiva/src/Evolutiva/TSP40.txt";
+		} else if (prob == 50) {
+			arquivo = "/home/andre/git/Prog_Evolutiva/src/Evolutiva/TSP50.txt";
+		} else if (prob == 80) {
+			arquivo = "/home/andre/git/Prog_Evolutiva/src/Evolutiva/TSP80.txt";
+		} else if (prob == 100) {
+			arquivo = "/home/andre/git/Prog_Evolutiva/src/Evolutiva/TSP100.txt";
 		}
 		
 		RouteProblem problema = null;
 		try {
-			leituraArquivo(arquivo, problema);
+			problema = leituraArquivo(arquivo, problema);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		long tempoInicial = System.currentTimeMillis();
-		GA ga = new GA(problema, 100);
+		GA ga = new GA(problema, populacao);
 		ga.run(tempo, tempoInicial);
 	}
 	
-	public void leituraArquivo(String file, RouteProblem problema) throws IOException{
+	public RouteProblem leituraArquivo(String file, RouteProblem problema) throws IOException{
 		readArq = new BufferedReader(new FileReader(file));
 		ArrayList<Pontos> pontos = new ArrayList<Pontos>();
 		int indexPontos = 0;
@@ -65,9 +67,10 @@ public class Experimentos {
 				p1.setRotulo(indexPontos);
 				pontos.add(p1);
 				indexPontos++;
-			}else if(linha.startsWith("[")){
+			}else if(linha.contains("[") && linha.contains("]")){
 				int indexFim = linha.lastIndexOf("]");
-				String aux2 = linha.substring(1, indexFim-1);
+				int indexIni = linha.lastIndexOf("[");
+				String aux2 = linha.substring(indexIni+1, indexFim-1);
 				aux2 = aux2.replaceAll(" ", "");
 				String[] aux3 = aux2.split(",");
 				ArrayList<Double> distancias = new ArrayList<Double>();
@@ -80,5 +83,6 @@ public class Experimentos {
 			linha = readArq.readLine();
 		}
 		problema = new RouteProblem(pontos.size(), pontos);
+		return problema;
 	}
 }

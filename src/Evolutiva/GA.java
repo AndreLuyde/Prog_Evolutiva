@@ -9,17 +9,18 @@ public class GA {
 	private double crossProbability;
 	private double mutationProbability;
 	private RouteProblem problem;
-	private int gen = 0;
+	private int populationSize;
 	private int geracao = 0;
 	private RouteSolution bestSolution;
 	private ArrayList<RouteSolution> populacao = new ArrayList<RouteSolution>();
 	Random r = new Random();
 
 	public GA(RouteProblem problem, int populationSize) {
-		this.setBestSolution(problem.getSolution());
-		this.setProblem(problem);
-		this.setMutationProbability(1 / problem.getNumClients());
-		this.setCrossProbability(0.9);
+		setBestSolution(problem.getSolution());
+		setProblem(problem);
+		setPopulationSize(populationSize);
+		setMutationProbability(1 / problem.getNumClients());
+		setCrossProbability(0.9);
 
 		// inicializa a populacao
 		for (int i = 0; i < populationSize; i++) {
@@ -77,7 +78,7 @@ public class GA {
 			}
 
 			// selecao para proxima gera��o
-			populacao = selecao(populacao, 100);
+			populacao = selecao(populacao, getPopulationSize());
 			setGeracao(getGeracao() + 1);
 
 			// guarda melhor solu��o da gera��o
@@ -86,22 +87,22 @@ public class GA {
 			if (getBestSolution() == null) {
 				setBestSolution(melhorSolucaoGeracao);
 				// mostra melhor solu��o da gera��o
-				System.out.println("Solu��o Da " + getGeracao() + " gera��o");
-				for (Pontos ponto : melhorSolucaoGeracao.getSolucao()) {
-					System.out.print("| " + ponto.getRotulo() + " ");
-				}
-				System.out.println("|");
-				System.out.println("Fitness: " + melhorSolucaoGeracao.getFitness());
+//				System.out.println("Solução Da " + getGeracao() + " geração");
+//				for (Pontos ponto : melhorSolucaoGeracao.getSolucao()) {
+//					System.out.print("| " + ponto.getRotulo() + " ");
+//				}
+//				System.out.println("|");
+//				System.out.println("Fitness: " + melhorSolucaoGeracao.getFitness());
 
 			} else if (melhorSolucaoGeracao.getFitness() < getBestSolution().getFitness()) {
 				setBestSolution(melhorSolucaoGeracao);
 				// mostra melhor solu��o da gera��o
-				System.out.println("Solu��o Da " + getGeracao() + " gera��o");
-				for (Pontos ponto : melhorSolucaoGeracao.getSolucao()) {
-					System.out.print("| " + ponto.getRotulo() + " ");
-				}
-				System.out.println("|");
-				System.out.println("Fitness: " + melhorSolucaoGeracao.getFitness());
+//				System.out.println("Solução Da " + getGeracao() + " geração");
+//				for (Pontos ponto : melhorSolucaoGeracao.getSolucao()) {
+//					System.out.print("| " + ponto.getRotulo() + " ");
+//				}
+//				System.out.println("|");
+//				System.out.println("Fitness: " + melhorSolucaoGeracao.getFitness());
 			}
 
 			// atualiza crit�rio de parada
@@ -110,8 +111,10 @@ public class GA {
 			timeDouble = Double.parseDouble((String.valueOf(time))) / 1000;
 
 		} while (timeFimExecucao > timeDouble);
-
-		System.out.println("Melhor Solu��o encontrada");
+		System.out.println("Tamanho da População: "+populacao.size());
+		System.out.println("Tempo de Execução: "+timeFimExecucao);
+		System.out.println("Arquivo com "+populacao.get(0).getSolucao().size()+" cidades");
+		System.out.println("Melhor Solução encontrada");
 		for (Pontos ponto : getBestSolution().getSolucao()) {
 			System.out.print("| " + ponto.getRotulo() + " ");
 		}
@@ -237,30 +240,20 @@ public class GA {
 
 	private double fitness(RouteSolution solucao) {
 		double distanciaTotal = 0;
-		for (int i = 0; i < solucao.getSolucao().size(); i++) {
-			if (i == solucao.getSolucao().size() - 1) {
-				distanciaTotal += solucao.getSolucao().get(i).getDistancias().get(solucao.getSolucao().get(0).getRotulo()-1);
-			} else {
-				distanciaTotal += solucao.getSolucao().get(i).getDistancias().get(solucao.getSolucao().get(i+1).getRotulo() -1);
-			}
+		for (int i = 0; i < solucao.getSolucao().size()-1; i++) {
+			distanciaTotal += solucao.getSolucao().get(i).getDistancias().get(solucao.getSolucao().get(i+1).getRotulo());
 		}
+		distanciaTotal += solucao.getSolucao().get(solucao.getSolucao().size()-1).getDistancias().get(solucao.getSolucao().get(0).getRotulo());
 		solucao.setFitness(distanciaTotal);
 		return distanciaTotal;
 	}
 
 	private RouteSolution getMelhorSolucao(ArrayList<RouteSolution> populacao) {
 		RouteSolution melhorSolucao = populacao.get(0);
-		// for(int i=0; i< populacao.size(); i++){
-		// if(populacao.get(i).getFitness() < melhorSolucao.getFitness()){
-		// melhorSolucao.setFitness(fitness);
-		// melhorSolucao = populacao.get(i);
-		// }
-		// }
 		for (RouteSolution routeSolution : populacao) {
 			if (routeSolution.getFitness() < melhorSolucao.getFitness()) {
 				melhorSolucao.setFitness(routeSolution.getFitness());
 				melhorSolucao.setSolucao(routeSolution.getSolucao());
-				// melhorSolucao = routeSolution;
 			}
 		}
 		return melhorSolucao;
@@ -298,12 +291,12 @@ public class GA {
 		this.problem = problem;
 	}
 
-	public int getGen() {
-		return gen;
+	public int getPopulationSize() {
+		return populationSize;
 	}
 
-	public void setGen(int gen) {
-		this.gen = gen;
+	public void setPopulationSize(int populationSize) {
+		this.populationSize = populationSize;
 	}
 
 	public ArrayList<RouteSolution> getPopulacao() {

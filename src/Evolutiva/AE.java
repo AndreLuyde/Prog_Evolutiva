@@ -559,11 +559,9 @@ public class AE {
 		int distanciaTotal = 0;
 		for (int i = 0; i < solucao.getSolucao().size(); i++) {
 			if (i == solucao.getSolucao().size() - 1) {
-				distanciaTotal += solucao.getSolucao().get(i).getDistancias()
-						.get(solucao.getSolucao().get(0).getRotulo() - 1);
+				distanciaTotal += solucao.getSolucao().get(i).getDistancias().get(solucao.getSolucao().get(0).getRotulo() - 1);
 			} else {
-				distanciaTotal += solucao.getSolucao().get(i).getDistancias()
-						.get(solucao.getSolucao().get(i + 1).getRotulo() - 1);
+				distanciaTotal += solucao.getSolucao().get(i).getDistancias().get(solucao.getSolucao().get(i + 1).getRotulo() - 1);
 			}
 		}
 		solucao.setFitness(distanciaTotal);
