@@ -52,14 +52,7 @@ public class Individuo {
 		ArrayList<ArrayList<Pontos>> filhos = new ArrayList<ArrayList<Pontos>>();
 		ArrayList<Individuo> filhosInd = new ArrayList<Individuo>();
 		
-		if (sigmaMedia < (1 / (3 * sigmaMedia))) {
-			filhos = individuo1.getSolution().crossingRoute1Cut(individuo1.getSolution(), individuo2.getSolution());
-			for (ArrayList<Pontos> arrayList : filhos) {
-				RouteSolution filho = new RouteSolution(arrayList);
-				Individuo individuo = new Individuo(filho, sigmaMedia);
-				filhosInd.add(individuo);
-			}
-		} else if (sigmaMedia < (2 / (3 * sigmaMedia))) {
+		if (sigmaMedia < (1 / (2 * sigmaMedia))) {
 			filhos = individuo1.getSolution().crossingRoute2Cut(individuo1.getSolution(), individuo2.getSolution());
 			for (ArrayList<Pontos> arrayList : filhos) {
 				RouteSolution filho = new RouteSolution(arrayList);
@@ -67,8 +60,12 @@ public class Individuo {
 				filhosInd.add(individuo);
 			}
 		} else {
-//			filhos = individuo1.getSolution().cr(individuo1.getSolution(), individuo2.getSolution());
-//			individuo.getSolution().mutationRouteByShuffle(individuo.getSolution());
+			filhos = individuo1.getSolution().crossingRoute1Cut(individuo1.getSolution(), individuo2.getSolution());
+			for (ArrayList<Pontos> arrayList : filhos) {
+				RouteSolution filho = new RouteSolution(arrayList);
+				Individuo individuo = new Individuo(filho, sigmaMedia);
+				filhosInd.add(individuo);
+			}
 		}
 		return filhosInd;
 	}

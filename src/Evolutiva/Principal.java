@@ -39,8 +39,17 @@ public class Principal {
 		tempos.add(120l);
 		tempos.add(150l);
 		tempos.add(180l);
-		exp.run(prob, populacoes, tempos);
-		
+		ArrayList<Double> proporcaoPaisFilhos = new ArrayList<Double>();
+		proporcaoPaisFilhos.add(0.2);
+		proporcaoPaisFilhos.add(0.4);
+		proporcaoPaisFilhos.add(0.6);
+		proporcaoPaisFilhos.add(0.8);
+		//GA
+//		exp.run(prob, populacoes, tempos, 1, proporcaoPaisFilhos);
+		//AE
+//		exp.run(prob, populacoes, tempos, 2, proporcaoPaisFilhos);
+		// ilhas
+		exp.runIlhas(prob, populacoes, tempos, proporcaoPaisFilhos);
 //		-----------------------------------------------------------------------
 		ArrayList<Pontos> pontos = new ArrayList<Pontos>();
 
@@ -99,7 +108,7 @@ public class Principal {
 //		ga.run(tempoFinal, tempoInicial);
 
 		//execução AE
-		AE ae = new AE(problema, 50, true, true, 0.2);
+		AE ae = new AE(problema, 50, true, true, 0.2, true);
 		ae.run(tempoFinal, tempoInicial);
 		
 		long timeEnd = System.currentTimeMillis();

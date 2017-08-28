@@ -19,10 +19,11 @@ public class AE {
 	// este double definirá a proporção entre pais e filhos
 	private Double proporcaoPaisFilhos;
 	private Boolean autoAdaptacao;
+	private Boolean buscaLocal;
 	Random r = new Random();
 
 	public AE(RouteProblem problem, int populationSize, Boolean autoAdaptacao, Boolean competicaoPaisFilhos,
-			double proporcaoPaisFilhos) {
+			double proporcaoPaisFilhos, boolean buscaLocal) {
 		setMutationProbability(1 / problem.getNumClients());
 		setCrossProbability(0.9);
 		setProblema(problem);
@@ -30,6 +31,7 @@ public class AE {
 		setAutoAdaptacao(autoAdaptacao);
 		setCompeticaoPaisFilhos(competicaoPaisFilhos);
 		setProporcaoPaisFilhos(proporcaoPaisFilhos);
+		setBuscaLocal(buscaLocal);
 
 		// inicializa a populacao
 		for (int i = 0; i < populationSize; i++) {
@@ -40,60 +42,68 @@ public class AE {
 		}
 	}
 
-	public void ilhas(ArrayList<ArrayList<RouteSolution>> ilhas, long timeFimExecucao, long tempoInicial) {
-		ArrayList<RouteSolution> melhoresSolutions = new ArrayList<RouteSolution>(); 
-		RouteSolution best;
-		int tempo = 0;
+	public void ilhas(ArrayList<ArrayList<Individuo>> ilhasInd, long timeFimExecucao, long tempoInicial) {
+		ArrayList<Individuo> melhoresSolutions = new ArrayList<Individuo>();
+		Individuo individuo;
 		double timeDouble = 0;
+		for (int i = 0; i < ilhasInd.size(); i++) {
+			melhoresSolutions.add(ilhasInd.get(i).get(0));
+		}
 		do {
-			for (int i = 0; i < ilhas.size(); i++) {
-				cicloEvolucionario(ilhas.get(i), timeFimExecucao, tempoInicial, false);
-				best = getMelhorSolucao(ilhas.get(i));
-				if(melhoresSolutions.get(i).equals(null)) {
-					melhoresSolutions.set(i, best);
-				}else {
-					if(fitness(melhoresSolutions.get(i)) > fitness(best)) {
-						melhoresSolutions.set(i, best);
-					}
+			for (int i = 0; i < ilhasInd.size(); i++) {
+				ilhasInd.set(i, cicloEvolucionarioIlhas(ilhasInd.get(i), getAutoAdaptacao(), getBuscaLocal()));
+				// if (melhoresSolutions.get(i) == null) {
+				// individuo = new Individuo(getBestSolution(), 0.5);
+				// melhoresSolutions.set(i, individuo);
+				// } else {
+				if (fitness(melhoresSolutions.get(i).getSolution()) > fitness(getBestSolution())) {
+					individuo = new Individuo(getBestSolution(), 0.5);
+					melhoresSolutions.set(i, individuo);
 				}
+				// }
 			}
-			tempo++;
-			
-			if(tempo == 5) {
-				for (int i = 0; i < ilhas.size(); i++) {
-					ilhas.get(i).add(melhoresSolutions.get(i));
-				}
-				tempo = 0;
+			for (int i = 1; i < ilhasInd.size(); i++) {
+				ilhasInd.get(i - 1).add(melhoresSolutions.get(i));
 			}
-			
+			ilhasInd.get(ilhasInd.size() - 1).add(melhoresSolutions.get(0));
 			long actualTime = System.currentTimeMillis();
 			long time = (actualTime - tempoInicial);
 			timeDouble = Double.parseDouble((String.valueOf(time))) / 1000;
 		} while (timeFimExecucao > timeDouble);
+		RouteSolution bestSol = getMelhorSolucaoIndividuos(melhoresSolutions);
+		System.out.println("Tamanho da População: " + getTamanhoPopulacao());
+		System.out.println("Tempo de Execução: " + timeFimExecucao);
+		System.out.println("Arquivo com " + getProblema().getNumClients() + " cidades");
+		System.out.println("Auto-Adaptação: " + getAutoAdaptacao());
+		System.out.println("Competição entre pais e filhos: " + getCompeticaoPaisFilhos());
+		System.out.println("Proporção entre pais e filhos " + getProporcaoPaisFilhos());
+		System.out.println("Geração: " + getGeracaoAtual());
+		System.out.println("Melhor Solução encontrada");
+		for (Pontos ponto : bestSol.getSolucao()) {
+			System.out.print("| " + ponto.getRotulo() + " ");
+		}
+		System.out.println("|");
+		System.out.println("Fitness: " + bestSol.getFitness());
+
 	}
 
 	public void run(long timeFimExecucao, long tempoInicial) {
-		cicloEvolucionario(getPopulacao(), timeFimExecucao, tempoInicial, getAutoAdaptacao());
+		cicloEvolucionario(getPopulacao(), timeFimExecucao, tempoInicial, getAutoAdaptacao(), getBuscaLocal());
 	}
 
 	public RouteSolution getMelhorSolucao(ArrayList<RouteSolution> populacao) {
-		RouteSolution melhorSolucao = null;
+		RouteSolution melhorSolucao = populacao.get(0);
 		for (RouteSolution routeSolution : populacao) {
-			fitness(routeSolution);
-			if (melhorSolucao != null) {
-				if (routeSolution.getFitness() < melhorSolucao.getFitness()) {
-					melhorSolucao = routeSolution;
-				}
-			} else {
-				melhorSolucao = routeSolution;
+			if (routeSolution.getFitness() < melhorSolucao.getFitness()) {
+				melhorSolucao.setFitness(routeSolution.getFitness());
+				melhorSolucao.setSolucao(routeSolution.getSolucao());
 			}
 		}
-		setBestSolution(melhorSolucao);
 		return melhorSolucao;
 	}
 
 	private void cicloEvolucionario(ArrayList<RouteSolution> populacao, long timeFimExecucao, long tempoInicial,
-			boolean autoAdaptacao) {
+			boolean autoAdaptacao, boolean buscaLocal) {
 		ArrayList<ArrayList<Pontos>> filhos = new ArrayList<ArrayList<Pontos>>();
 		ArrayList<RouteSolution> populacaoFilhos = new ArrayList<RouteSolution>();
 		ArrayList<Individuo> popIndividuos = new ArrayList<Individuo>();
@@ -147,42 +157,58 @@ public class AE {
 					}
 
 					// faz busca local em N indivíduos
-					buscaLocal(paiInd1);
+					if (buscaLocal) {
+						indice1 = r.nextInt(popIndividuos.size());
+						Individuo busca = new Individuo(popIndividuos.get(indice1).getSolution(), 0.5);
+						busca.setSolution(buscaLocal(busca));
+						filhosIndividuos.add(busca);
+					}
 
-				} while (filhosIndividuos.size() < getTamanhoPopulacao() / 2);
+				} while (filhosIndividuos.size() < (getTamanhoPopulacao() / 2));
 
 				// selecao para proxima geração //estratégia de seleção
-				if (getProporcaoPaisFilhos() > 0.5 || getCompeticaoPaisFilhos()) {
-					popIndividuos = selecaoIndividuos(popIndividuos, filhosIndividuos, getTamanhoPopulacao(),
-							getProporcaoPaisFilhos(), getCompeticaoPaisFilhos());
-				} else {
-					popIndividuos = roletaIndividuos(popIndividuos, filhosIndividuos, getTamanhoPopulacao(),
-							getProporcaoPaisFilhos(), getCompeticaoPaisFilhos());
-				}
+				// if (getProporcaoPaisFilhos() > 0.5 || getCompeticaoPaisFilhos()) {
+				popIndividuos = selecaoIndividuos(popIndividuos, filhosIndividuos, getTamanhoPopulacao(),
+						getProporcaoPaisFilhos(), getCompeticaoPaisFilhos());
+				// } else {
+				// popIndividuos = roletaIndividuos(popIndividuos, filhosIndividuos,
+				// getTamanhoPopulacao(),
+				// getProporcaoPaisFilhos(), getCompeticaoPaisFilhos());
+				// }
 				setPopIndividuos(popIndividuos);
 				setGeracaoAtual(getGeracaoAtual() + 1);
 
 				// guarda melhor solução da geração
 				RouteSolution melhorSolucaoGeracao = new RouteSolution(getMelhorSolucaoIndividuos(popIndividuos));
 				if (getBestSolution() == null) {
-					setBestSolution(melhorSolucaoGeracao);
-					// mostra melhor solução da geração
-					System.out.println("Solução Da " + getGeracaoAtual() + " geração");
-					for (Pontos ponto : melhorSolucaoGeracao.getSolucao()) {
-						System.out.print("| " + ponto.getRotulo() + " ");
+					// faz busca local em N indivíduos
+					Individuo test = new Individuo(melhorSolucaoGeracao, 0.5);
+					if (buscaLocal) {
+						test.setSolution(buscaLocal(test));
 					}
-					System.out.println("|");
-					System.out.println("Fitness: " + melhorSolucaoGeracao.getFitness());
+					setBestSolution(test.getSolution());
+					// mostra melhor solução da geração
+					// System.out.println("Solução Da " + getGeracaoAtual() + " geração");
+					// for (Pontos ponto : melhorSolucaoGeracao.getSolucao()) {
+					// System.out.print("| " + ponto.getRotulo() + " ");
+					// }
+					// System.out.println("|");
+					// System.out.println("Fitness: " + melhorSolucaoGeracao.getFitness());
 
 				} else if (melhorSolucaoGeracao.getFitness() < getBestSolution().getFitness()) {
-					setBestSolution(melhorSolucaoGeracao);
-					// mostra melhor solucao da geração
-					System.out.println("Solução Da " + getGeracaoAtual() + " geração");
-					for (Pontos ponto : melhorSolucaoGeracao.getSolucao()) {
-						System.out.print("| " + ponto.getRotulo() + " ");
+					Individuo test = new Individuo(melhorSolucaoGeracao, 0.5);
+					// faz busca local em N indivíduos
+					if (buscaLocal) {
+						test.setSolution(buscaLocal(test));
 					}
-					System.out.println("|");
-					System.out.println("Fitness: " + melhorSolucaoGeracao.getFitness());
+					setBestSolution(test.getSolution());
+					// mostra melhor solucao da geração
+					// System.out.println("Solução Da " + getGeracaoAtual() + " geração");
+					// for (Pontos ponto : melhorSolucaoGeracao.getSolucao()) {
+					// System.out.print("| " + ponto.getRotulo() + " ");
+					// }
+					// System.out.println("|");
+					// System.out.println("Fitness: " + melhorSolucaoGeracao.getFitness());
 				}
 
 				// atualiza criterio de parada
@@ -192,6 +218,13 @@ public class AE {
 
 			} while (timeFimExecucao > timeDouble);
 
+			System.out.println("Tamanho da População: " + getTamanhoPopulacao());
+			System.out.println("Tempo de Execução: " + timeFimExecucao);
+			System.out.println("Arquivo com " + getProblema().getNumClients() + " cidades");
+			System.out.println("Auto-Adaptação: " + getAutoAdaptacao());
+			System.out.println("Competição entre pais e filhos: " + getCompeticaoPaisFilhos());
+			System.out.println("Proporção entre pais e filhos " + getProporcaoPaisFilhos());
+			System.out.println("Geração: " + getGeracaoAtual());
 			System.out.println("Melhor Solução encontrada");
 			for (Pontos ponto : getBestSolution().getSolucao()) {
 				System.out.print("| " + ponto.getRotulo() + " ");
@@ -226,43 +259,63 @@ public class AE {
 						populacaoFilhos.add(mutationRouteByChange(pai1));
 					}
 
-					// faz busca local em N indivíduos
-					Individuo teste = new Individuo(pai1, 0.5);
-					buscaLocal(teste);
-				} while (populacaoFilhos.size() < getTamanhoPopulacao() / 2);
+					if (buscaLocal) {
+						// faz busca local em N indivíduos
+						indice1 = r.nextInt(populacao.size() - 1);
+						Individuo busca = new Individuo(populacao.get(indice1), 0.5);
+						busca.setSolution(buscaLocal(busca));
+						populacaoFilhos.add(busca.getSolution());
+					}
+
+				} while (populacaoFilhos.size() < (getTamanhoPopulacao() / 2));
 
 				// selecao para proxima geração //estratégia de seleção
-				if (getProporcaoPaisFilhos() > 0.5 || getCompeticaoPaisFilhos()) {
-					populacao = selecao(populacao, populacaoFilhos, getTamanhoPopulacao(), getProporcaoPaisFilhos(),
-							getCompeticaoPaisFilhos());
-				} else {
-					populacao = roleta(populacao, populacaoFilhos, getTamanhoPopulacao(), getProporcaoPaisFilhos(),
-							getCompeticaoPaisFilhos());
-				}
+				// if (getProporcaoPaisFilhos() > 0.5 || getCompeticaoPaisFilhos()) {
+				populacao = selecao(populacao, populacaoFilhos, getTamanhoPopulacao(), getProporcaoPaisFilhos(),
+						getCompeticaoPaisFilhos());
+				// } else {
+				// populacao = roleta(populacao, populacaoFilhos, getTamanhoPopulacao(),
+				// getProporcaoPaisFilhos(),
+				// getCompeticaoPaisFilhos());
+				// }
 				setPopulacao(populacao);
 				setGeracaoAtual(getGeracaoAtual() + 1);
 
 				// guarda melhor solução da geração
 				RouteSolution melhorSolucaoGeracao = new RouteSolution(getMelhorSolucao(populacao));
 				if (getBestSolution() == null) {
-					setBestSolution(melhorSolucaoGeracao);
-					// mostra melhor solução da geração
-					System.out.println("Solução Da " + getGeracaoAtual() + " geração");
-					for (Pontos ponto : melhorSolucaoGeracao.getSolucao()) {
-						System.out.print("| " + ponto.getRotulo() + " ");
+					if (buscaLocal) {
+						// faz busca local em N indivíduos
+						Individuo teste = new Individuo(melhorSolucaoGeracao, 0.5);
+						teste.setSolution(buscaLocal(teste));
+						setBestSolution(teste.getSolution());
+					} else {
+						setBestSolution(melhorSolucaoGeracao);
 					}
-					System.out.println("|");
-					System.out.println("Fitness: " + melhorSolucaoGeracao.getFitness());
+					// mostra melhor solução da geração
+					// System.out.println("Solução Da " + getGeracaoAtual() + " geração");
+					// for (Pontos ponto : melhorSolucaoGeracao.getSolucao()) {
+					// System.out.print("| " + ponto.getRotulo() + " ");
+					// }
+					// System.out.println("|");
+					// System.out.println("Fitness: " + melhorSolucaoGeracao.getFitness());
 
 				} else if (melhorSolucaoGeracao.getFitness() < getBestSolution().getFitness()) {
-					setBestSolution(melhorSolucaoGeracao);
-					// mostra melhor solucao da geração
-					System.out.println("Solução Da " + getGeracaoAtual() + " geração");
-					for (Pontos ponto : melhorSolucaoGeracao.getSolucao()) {
-						System.out.print("| " + ponto.getRotulo() + " ");
+					if (buscaLocal) {
+						// faz busca local em N indivíduos
+						Individuo teste = new Individuo(melhorSolucaoGeracao, 0.5);
+						teste.setSolution(buscaLocal(teste));
+						setBestSolution(teste.getSolution());
+					} else {
+						setBestSolution(melhorSolucaoGeracao);
 					}
-					System.out.println("|");
-					System.out.println("Fitness: " + melhorSolucaoGeracao.getFitness());
+					// mostra melhor solucao da geração
+					// System.out.println("Solução Da " + getGeracaoAtual() + " geração");
+					// for (Pontos ponto : melhorSolucaoGeracao.getSolucao()) {
+					// System.out.print("| " + ponto.getRotulo() + " ");
+					// }
+					// System.out.println("|");
+					// System.out.println("Fitness: " + melhorSolucaoGeracao.getFitness());
 				}
 
 				// atualiza criterio de parada
@@ -271,7 +324,13 @@ public class AE {
 				timeDouble = Double.parseDouble((String.valueOf(time))) / 1000;
 
 			} while (timeFimExecucao > timeDouble);
-
+			System.out.println("Tamanho da População: " + populacao.size());
+			System.out.println("Tempo de Execução: " + timeFimExecucao);
+			System.out.println("Arquivo com " + populacao.get(0).getSolucao().size() + " cidades");
+			System.out.println("Auto-Adaptação: " + getAutoAdaptacao());
+			System.out.println("Competição entre pais e filhos: " + getCompeticaoPaisFilhos());
+			System.out.println("Proporção entre pais e filhos " + getProporcaoPaisFilhos());
+			System.out.println("Geração: " + getGeracaoAtual());
 			System.out.println("Melhor Solução encontrada");
 			for (Pontos ponto : getBestSolution().getSolucao()) {
 				System.out.print("| " + ponto.getRotulo() + " ");
@@ -282,19 +341,93 @@ public class AE {
 
 	}
 
-	private RouteSolution getMelhorSolucaoIndividuos(ArrayList<Individuo> popIndividuos) {
-		RouteSolution melhorSolucao = null;
-		for (Individuo individuo : popIndividuos) {
-			fitness(individuo.getSolution());
-			if (melhorSolucao != null) {
-				if (individuo.getSolution().getFitness() < melhorSolucao.getFitness()) {
-					melhorSolucao = individuo.getSolution();
+	private ArrayList<Individuo> cicloEvolucionarioIlhas(ArrayList<Individuo> popIndividuos, boolean autoAdaptacao,
+			boolean buscaLocal) {
+		ArrayList<Individuo> filhosIndividuos = new ArrayList<Individuo>();
+		RouteSolution pai1 = null;
+		RouteSolution pai2 = null;
+		Individuo paiInd1 = null;
+		Individuo paiInd2 = null;
+		int indice1 = -1;
+		int indice2 = -1;
+		int indice3 = -1;
+		int indice4 = -1;
+
+		// coloca em cada solução o fitness dela
+		for (Individuo ind : popIndividuos) {
+			ind.getSolution().setFitness(fitness(ind.getSolution()));
+		}
+
+		do {
+			do {
+				// seleção de pontos para fazer seleção para cruzamento
+				indice1 = (int) (0 + Math.random() * popIndividuos.size());
+				indice2 = (int) (0 + Math.random() * popIndividuos.size());
+				indice3 = (int) (0 + Math.random() * popIndividuos.size());
+				indice4 = (int) (0 + Math.random() * popIndividuos.size());
+
+				// seleção de pais para cruzamento
+				pai1 = torneio(popIndividuos.get(indice1).getSolution(), popIndividuos.get(indice2).getSolution());
+				paiInd1 = new Individuo(pai1, 0.8);
+				pai2 = torneio(popIndividuos.get(indice3).getSolution(), popIndividuos.get(indice4).getSolution());
+				paiInd2 = new Individuo(pai2, 0.8);
+
+				// verifica probabilidade de cruzamento
+				if (((paiInd1.getSigma() + paiInd2.getSigma()) / 2) < getCrossProbability()) {
+					filhosIndividuos.addAll(paiInd1.crossing(paiInd1, paiInd2));
 				}
-			} else {
-				melhorSolucao = individuo.getSolution();
+
+				// verifica possibilidade de mutação
+				if (((paiInd1.getSigma() + paiInd2.getSigma()) / 2) < getMutationProbability()) {
+					paiInd1.mutacao(paiInd1);
+					filhosIndividuos.add(paiInd1);
+				}
+
+				// faz busca local em um indivíduo aleatório
+				if (buscaLocal) {
+					indice1 = r.nextInt(popIndividuos.size());
+					Individuo busca = new Individuo(popIndividuos.get(indice1).getSolution(), 0.5);
+					busca.setSolution(buscaLocal(busca));
+					filhosIndividuos.add(busca);
+				}
+
+			} while (filhosIndividuos.size() < (getTamanhoPopulacao() / 2));
+
+			// selecao para proxima geração //estratégia de seleção
+			popIndividuos = selecaoSimplesIndividuos(popIndividuos, filhosIndividuos, getTamanhoPopulacao());
+			setPopIndividuos(popIndividuos);
+			setGeracaoAtual(getGeracaoAtual() + 1);
+
+			// guarda melhor solução da geração
+			RouteSolution melhorSolucaoGeracao = new RouteSolution(getMelhorSolucaoIndividuos(popIndividuos));
+			if (getBestSolution() == null) {
+				// faz busca local na melhor solução
+				Individuo test = new Individuo(melhorSolucaoGeracao, 0.5);
+				if (buscaLocal) {
+					test.setSolution(buscaLocal(test));
+				}
+				setBestSolution(test.getSolution());
+			} else if (melhorSolucaoGeracao.getFitness() < getBestSolution().getFitness()) {
+				Individuo test = new Individuo(melhorSolucaoGeracao, 0.5);
+				// faz busca local na melhor solução
+				if (buscaLocal) {
+					test.setSolution(buscaLocal(test));
+				}
+				setBestSolution(test.getSolution());
+			}
+
+		} while (getGeracaoAtual() < 5000);
+		return popIndividuos;
+	}
+
+	private RouteSolution getMelhorSolucaoIndividuos(ArrayList<Individuo> popIndividuos) {
+		RouteSolution melhorSolucao = popIndividuos.get(0).getSolution();
+		for (Individuo individuo : popIndividuos) {
+			if (individuo.getSolution().getFitness() < melhorSolucao.getFitness()) {
+				melhorSolucao.setFitness(individuo.getSolution().getFitness());
+				melhorSolucao.setSolucao(individuo.getSolution().getSolucao());
 			}
 		}
-		setBestSolution(melhorSolucao);
 		return melhorSolucao;
 	}
 
@@ -356,6 +489,33 @@ public class AE {
 			}
 		}
 
+		return populacaoFinal;
+
+	}
+
+	private ArrayList<Individuo> selecaoSimplesIndividuos(ArrayList<Individuo> popIndividuos, ArrayList<Individuo> popIndividuosFilhos, int tamanhoPopulacao) {
+
+		Individuo aleatorio1 = null;
+		Individuo aleatorio2 = null;
+		ArrayList<Individuo> populacaoFinal = new ArrayList<Individuo>();
+
+		for (Individuo individuoAdd : popIndividuosFilhos) {
+			popIndividuos.add(individuoAdd);
+		}
+
+		for (int i = 0; i < tamanhoPopulacao; i++) {
+			int n = (int) (0 + Math.random() * popIndividuos.size());
+			aleatorio1 = popIndividuos.get(n);
+
+			n = (int) (0 + Math.random() * popIndividuos.size());
+			aleatorio2 = popIndividuos.get(n);
+
+			if (fitness(aleatorio1.getSolution()) < fitness(aleatorio2.getSolution())) {
+				populacaoFinal.add(aleatorio1);
+			} else {
+				populacaoFinal.add(aleatorio2);
+			}
+		}
 		return populacaoFinal;
 
 	}
@@ -555,21 +715,20 @@ public class AE {
 	}
 
 	// avaliação da solução
-	private int fitness(RouteSolution solucao) {
-		int distanciaTotal = 0;
-		for (int i = 0; i < solucao.getSolucao().size(); i++) {
-			if (i == solucao.getSolucao().size() - 1) {
-				distanciaTotal += solucao.getSolucao().get(i).getDistancias().get(solucao.getSolucao().get(0).getRotulo() - 1);
-			} else {
-				distanciaTotal += solucao.getSolucao().get(i).getDistancias().get(solucao.getSolucao().get(i + 1).getRotulo() - 1);
-			}
+	private double fitness(RouteSolution solucao) {
+		double distanciaTotal = 0;
+		for (int i = 0; i < solucao.getSolucao().size() - 1; i++) {
+			distanciaTotal += solucao.getSolucao().get(i).getDistancias()
+					.get(solucao.getSolucao().get(i + 1).getRotulo());
 		}
+		distanciaTotal += solucao.getSolucao().get(solucao.getSolucao().size() - 1).getDistancias()
+				.get(solucao.getSolucao().get(0).getRotulo());
 		solucao.setFitness(distanciaTotal);
 		return distanciaTotal;
 	}
 
 	// busca local para cada individuo
-	private void buscaLocal(Individuo individuo) {
+	private RouteSolution buscaLocal(Individuo individuo) {
 		RouteSolution melhorSolucao = new RouteSolution(individuo.getSolution());
 
 		int iteracoes = 0;
@@ -582,6 +741,7 @@ public class AE {
 			iteracoes++;
 		}
 		individuo.setSolution(melhorSolucao);
+		return melhorSolucao;
 	}
 
 	private RouteSolution geraNovoVizinho(RouteSolution solution) {
@@ -869,5 +1029,13 @@ public class AE {
 
 	public void setPopIndividuos(ArrayList<Individuo> popIndividuos) {
 		this.popIndividuos = popIndividuos;
+	}
+
+	public Boolean getBuscaLocal() {
+		return buscaLocal;
+	}
+
+	public void setBuscaLocal(Boolean buscaLocal) {
+		this.buscaLocal = buscaLocal;
 	}
 }
