@@ -45,9 +45,9 @@ public class Principal {
 		proporcaoPaisFilhos.add(0.6);
 		proporcaoPaisFilhos.add(0.8);
 		//GA
-//		exp.run(prob, populacoes, tempos, 1, proporcaoPaisFilhos);
+		exp.run(prob, populacoes, tempos, 1, proporcaoPaisFilhos);
 		//AE
-//		exp.run(prob, populacoes, tempos, 2, proporcaoPaisFilhos);
+		exp.run(prob, populacoes, tempos, 2, proporcaoPaisFilhos);
 		// ilhas
 		exp.runIlhas(prob, populacoes, tempos, proporcaoPaisFilhos);
 //		-----------------------------------------------------------------------

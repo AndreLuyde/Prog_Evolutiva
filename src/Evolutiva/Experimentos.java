@@ -128,11 +128,11 @@ public class Experimentos {
 		}
 		long tempoInicial = System.currentTimeMillis();
 		// execução sem busca local
-		// AE ae = new AE(problema, populacao, autoAdaptacao, competicaoPaisFilhos,
-		// proporcaoPaisFilhos, false);
+		 AE ae = new AE(problema, populacao, autoAdaptacao, competicaoPaisFilhos,
+		 proporcaoPaisFilhos, false);
 
 		// execução com busca local
-		AE ae = new AE(problema, populacao, autoAdaptacao, competicaoPaisFilhos, proporcaoPaisFilhos, true);
+		ae = new AE(problema, populacao, autoAdaptacao, competicaoPaisFilhos, proporcaoPaisFilhos, true);
 		ae.run(tempo, tempoInicial);
 	}
 

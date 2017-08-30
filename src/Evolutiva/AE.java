@@ -167,14 +167,14 @@ public class AE {
 				} while (filhosIndividuos.size() < (getTamanhoPopulacao() / 2));
 
 				// selecao para proxima geração //estratégia de seleção
-				// if (getProporcaoPaisFilhos() > 0.5 || getCompeticaoPaisFilhos()) {
+				 if (getProporcaoPaisFilhos() > 0.5 || getCompeticaoPaisFilhos()) {
 				popIndividuos = selecaoIndividuos(popIndividuos, filhosIndividuos, getTamanhoPopulacao(),
 						getProporcaoPaisFilhos(), getCompeticaoPaisFilhos());
-				// } else {
-				// popIndividuos = roletaIndividuos(popIndividuos, filhosIndividuos,
-				// getTamanhoPopulacao(),
-				// getProporcaoPaisFilhos(), getCompeticaoPaisFilhos());
-				// }
+				 } else {
+				 popIndividuos = roletaIndividuos(popIndividuos, filhosIndividuos,
+				 getTamanhoPopulacao(),
+				 getProporcaoPaisFilhos(), getCompeticaoPaisFilhos());
+				 }
 				setPopIndividuos(popIndividuos);
 				setGeracaoAtual(getGeracaoAtual() + 1);
 
